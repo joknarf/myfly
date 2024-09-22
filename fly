@@ -182,7 +182,7 @@ function fssh2
 
 function fly
 {
-    typeset plugin
+    typeset plugin submodule
     case "$1" in
     add)
         (umask 077;mkdir -p "$_fenvdir/.fly.d/plugins")
@@ -197,8 +197,10 @@ function fly
     updateall)
         _fzsh_glob fix
         for plugin in $(ls -d "$_fenvdir/.fly.d/plugins"/*/.git) ;do
-            (\cd "$plugin/.." && git pull origin "$(sed -e 's#.*/##' .git/HEAD)")
+            [ -d "$plugin" ] && (\cd "$plugin/.." && git pull origin "$(sed -e 's#.*/##' .git/HEAD)")
+            [ -s "$plugin" ] && submodule=1
         done
+        [ "$submodule" ] && (\cd $_fenvdir/.fly.d && git submodule update --remote --merge)
         _fzsh_glob reset
         _fsource_plugins
     ;;
