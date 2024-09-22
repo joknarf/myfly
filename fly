@@ -185,9 +185,16 @@ function fly
     typeset plugin submodule
     case "$1" in
     add)
-        (umask 077;mkdir -p "$_fenvdir/.fly.d/plugins")
-        (\cd "$_fenvdir/.fly.d/plugins" && git clone "$_fgithub/$2")
+        [ -d "$_fenvdir/.fly.d/.git" ] && {
+            (\cd "$_fenvdir/.fly.d" && git submodule add "$_fgithub/$2" "plugins/${2##*/}")
+        } || (\cd "$_fenvdir/.fly.d/plugins" && git clone "$_fgithub/$2")
         _fsource_plugins "${2#*/}"
+    ;;
+    del)
+        [ -d "$_fenvdir/.fly.d/.git" ] && {
+            (\cd "$_fenvdir/.fly.d" && git submodule deinit -f "plugins/${2##*/}")
+        }
+        rm -rf "$_fenvdir/.fly.d/plugins/${2##*/}"
     ;;
     update)
         [ ! "$2" ] && echo "usage: fly update <plugin>" && return 1 

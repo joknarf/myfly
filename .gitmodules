@@ -13,3 +13,6 @@
 [submodule "plugins/pgtree"]
 	path = plugins/pgtree
 	url = https://github.com/joknarf/pgtree
+[submodule "plugins/nerdps1"]
+	path = plugins/nerdps1
+	url = https://github.com/joknarf/nerdps1
