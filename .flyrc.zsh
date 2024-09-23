@@ -15,7 +15,6 @@ setopt appendhistory
 
 #setopt share_history
 setopt incappendhistory
-[ -f /opt/homebrew/etc/bash_completion ] && . /opt/homebrew/etc/bash_completion
 [ -d /opt/homebrew ] && {
     export HOMEBREW_PREFIX="/opt/homebrew";
     export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
