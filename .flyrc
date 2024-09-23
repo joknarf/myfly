@@ -9,8 +9,9 @@ HISTIGNORE="cd:cd *:history:ls:l:pwd:df:df -k:kill *:top:clear"
 . ~/py3/bin/activate 2>/dev/null
 CDINITDIRS="/usr/lib/systemd/system
 /var/log"
+KERNEL=$(uname -r)
+[[ "$KERNEL" = *ish ]] && CDHISTBIND="²"
 ps1_display=nerdicons
-ps1_sshmode=cfg
 ps1_info="ps1_osinfo"
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
