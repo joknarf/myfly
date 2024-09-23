@@ -11,6 +11,7 @@ CDINITDIRS="/usr/lib/systemd/system
 /var/log"
 KERNEL=$(uname -r)
 [[ "$KERNEL" = *ish ]] && CDHISTBIND="²"
+CDHISTBIND='\e[1;2B \e[1;5B ²'
 ps1_display=nerdicons
 ps1_info="ps1_osinfo"
 alias ls='ls --color=auto'
