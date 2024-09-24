@@ -29,10 +29,10 @@ function _fpackage
 
 function _fxpackage
 {
-    printf '%s;' 'type gtar >/dev/null 2>&1 && _ftar=gtar || _ftar=tar'
-    printf '%s;' 'umask 077' 'mkdir -p "'"$_ftmpdir"'"'
-    #printf '%s;' '! chmod 700 "'"$_ftmpdir"'" && echo "Not owner of '"$_ftmpdir"'. Abort >&2" && exit 1'
-    printf '%s' 'gzip -dc |$_ftar xf - -C "'"$_ftmpdir"'"'
+    printf 'type gtar >/dev/null 2>&1 && _ftar=gtar || _ftar=tar;'
+    printf 'umask 077;mkdir -p "%s";' "$_ftmpdir"
+    #printf '! chmod 700 "%s" && echo "Not owner of %s. Abort >&2" && exit 1;' "$_ftmpdir" "$_ftmpdir"
+    printf 'gzip -dc |$_ftar xf - -C "%s"' "$_ftmpdir"
 }
 
 function _fzsh_glob
@@ -117,9 +117,9 @@ function _flogin_shell
 function _flogin_rc
 {
     typeset fenvd="${1:-$_fenvdir}"
-    printf '%s\n' "FLY_USER_RC=$FLY_USER_RC"
-    printf '%s\n' "FLY_ETC_RC=$FLY_ETC_RC"
-    printf '%s\n' ". $fenvd/.fly.d/fly login $fenvd"
+    printf 'FLY_USER_RC="%s"\n' "$FLY_USER_RC"
+    printf 'FLY_ETC_RC="%s"\n' "$FLY_ETC_RC"
+    printf '. "%s/.fly.d/fly" login "%s"\n' "$fenvd" "$fenvd"
 }
 
 function fsudo
