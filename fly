@@ -1,11 +1,13 @@
+[ "$1" != source ] && unset _floaded
 [ "$_floaded" ] && return
 echo "Bzzz Bzzz !!!" >&2
 _floaded=1
-: "${_fenvdir:=$HOME}"
+[ "$1" = loginshell ] && FLY_HOME="$2"
+: "${FLY_HOME:=$HOME}"
 : "${_fgithub=https://github.com}"
-: "${FLY_USER_RC=true}"
-: "${FLY_ETC_RC=true}"
-: "${_fuuid:=$(cat "$_fenvdir/.fly.d/.flyuuid" 2>/dev/null || uuidgen)}"
+: "${FLY_USER_RC:=true}"
+: "${FLY_ETC_RC:=true}"
+: "${_fuuid:=$(cat "$FLY_HOME/.fly.d/.flyuuid" 2>/dev/null || uuidgen)}"
 : "${_ftmpdir:="/tmp/.fly.\$USER/$_fuuid"}"
 type gtar >/dev/null 2>&1 && _ftar=gtar || _ftar=tar
 
@@ -24,15 +26,15 @@ function _fshell
 
 function _fpackage
 {
-    $_ftar czf - -C "$_fenvdir" --no-xattrs --exclude-vcs --exclude=README.md --exclude='plugins/*/.*' --exclude '*/*/tests' .fly.d
+    $_ftar -czf - -C "$FLY_HOME" --no-xattrs --exclude-vcs --exclude=README.md --exclude='plugins/*/.*' --exclude '*/*/tests' .fly.d
 }
 
 function _fxpackage
 {
     printf 'type gtar >/dev/null 2>&1 && _ftar=gtar || _ftar=tar;'
     printf 'umask 077;mkdir -p "%s";' "$_ftmpdir"
-    #printf '! chmod 700 "%s" && echo "Not owner of %s. Abort >&2" && exit 1;' "$_ftmpdir" "$_ftmpdir"
-    printf 'gzip -dc |$_ftar xf - -C "%s"' "$_ftmpdir"
+    printf '! chmod 700 "%s" && echo "Not owner of %s. Abort >&2" && exit 1;' "${_ftmpdir%/*}" "${_ftmpdir%/*}"
+    printf '$_ftar -xzf - -C "%s" --no-same-owner' "$_ftmpdir"
 }
 
 function _fzsh_glob
@@ -46,10 +48,10 @@ function _fzsh_glob
 
 function _fsource_plugins
 {
-    typeset p="$1" plugin plugindir="$_fenvdir/.fly.d/plugins"
+    typeset p="$1" plugin plugindir="$FLY_HOME/.fly.d/plugins"
 
-    [ -r "$_fenvdir/.fly.d/.flyrc" ] && . "$_fenvdir/.fly.d/.flyrc"
-    [ -r "$_fenvdir/.fly.d/.flyrc.$FLY_SHELL" ] && . "$_fenvdir/.fly.d/.flyrc.$FLY_SHELL"
+    [ -r "$FLY_HOME/.fly.d/.flyrc" ] && . "$FLY_HOME/.fly.d/.flyrc"
+    [ -r "$FLY_HOME/.fly.d/.flyrc.$FLY_SHELL" ] && . "$FLY_HOME/.fly.d/.flyrc.$FLY_SHELL"
     _fzsh_glob fix
     for plugin in $([ "$p" ] && ls -- "$plugindir/$p/"*.plugin."$FLY_SHELL" 2>/dev/null || \
                                 ls -- "$plugindir/"*/*.plugin."$FLY_SHELL" 2>/dev/null)
@@ -100,7 +102,7 @@ function _fsource_profile_ksh
 function _fsource_profile
 {
     eval "_fsource_profile_$FLY_SHELL"
-    FLY_HOST_PROFILE=true FLY_USER_PROFILE=true
+    FLY_ETC_RC=true FLY_USER_RC=true
     _fsource_plugins
 }
 
@@ -108,25 +110,26 @@ function _flogin_shell
 {
     typeset shell="${1:-$FLY_SHELL}"
     case "$shell" in 
-    bash) _flogin_rc >$_fenvdir/.fly.d/.bashrc && exec bash --noprofile --init-file $_fenvdir/.fly.d/.bashrc;;
-    zsh)  _flogin_rc >$_fenvdir/.fly.d/.zshrc && ZDOTDIR=$_fenvdir/.fly.d exec zsh -di;;
-    ksh)  _flogin_rc >$_fenvdir/.fly.d/.kshrc && ENV=$_fenvdir/.fly.d/.kshrc exec ksh -i;;
+    bash) _flogin_rc >$FLY_HOME/.fly.d/.bashrc && exec bash --noprofile --init-file $FLY_HOME/.fly.d/.bashrc;;
+    zsh)  _flogin_rc >$FLY_HOME/.fly.d/.zshrc && ZDOTDIR=$FLY_HOME/.fly.d exec zsh -di;;
+    ksh)  _flogin_rc >$FLY_HOME/.fly.d/.kshrc && ENV=$FLY_HOME/.fly.d/.kshrc exec ksh -i;;
     esac
 }
 
 function _flogin_rc
 {
-    typeset fenvd="${1:-$_fenvdir}"
+    printf 'FLY_HOME="%s"\n' "$FLY_HOME"
     printf 'FLY_USER_RC="%s"\n' "$FLY_USER_RC"
     printf 'FLY_ETC_RC="%s"\n' "$FLY_ETC_RC"
-    printf '. "%s/.fly.d/fly" login "%s"\n' "$fenvd" "$fenvd"
+    printf 'unset _floaded\n'
+    printf '. "%s/.fly.d/fly" login\n' "$FLY_HOME"
 }
 
 function fsudo
 {
     typeset user=${1:-root} 
     _fpackage |sudo -H -u "$user" $FLY_SHELL -c "$(_fxpackage)" || return $?
-    sudo -H -u "$user" -i FLY_USER_RC="$FLY_USER_RC" FLY_ETC_RC="$FLY_ETC_RC" _fdestshell="$_fdestshell" "_fuuid=$_fuuid" . "$_ftmpdir/.fly.d/fly" loginshell "$_ftmpdir"
+    sudo -H -u "$user" -i FLY_USER_RC="$FLY_USER_RC" FLY_ETC_RC="$FLY_ETC_RC" _fdestshell="$_fdestshell" . "$_ftmpdir/.fly.d/fly" loginshell "$_ftmpdir"
 }
 
 function _fssh_cmd
@@ -134,7 +137,7 @@ function _fssh_cmd
     typeset b64opt
     echo ok |base64 -w0 >/dev/null 2>&1 && b64opt='-w0'
     cat - <<EOF
-echo $(_fpackage |base64 $b64opt) |base64 -d |($(_fxpackage))
+printf '$(_fpackage |base64 $b64opt)' |base64 -d |($(_fxpackage))
 _fdestshell="$_fdestshell"
 FLY_USER_RC="$FLY_USER_RC"
 FLY_ETC_RC="$FLY_ETC_RC"
@@ -166,11 +169,11 @@ function fssh
     [ ! "$ssh_config" ] && [ -f ~/.ssh/config ] && ssh_config="Include $HOME/.ssh/config"
     cmd="$(_fssh_cmd)"
     cmd="${cmd//$'\n'/;}"
-    cat - <<EOF >"$_fenvdir/.fly_ssh"
+    cat - <<EOF >"$FLY_HOME/.fly_ssh"
 $ssh_config
 RemoteCommand $cmd
 EOF
-    ssh -t -F "$_fenvdir/.fly_ssh" "$@"
+    ssh -t -F "$FLY_HOME/.fly_ssh" "$@"
 }
 
 function fssh2
@@ -185,29 +188,29 @@ function fly
     typeset plugin submodule
     case "$1" in
     add)
-        [ -d "$_fenvdir/.fly.d/.git" ] && {
-            (\cd "$_fenvdir/.fly.d" && git submodule add "$_fgithub/$2" "plugins/${2##*/}" 2>/dev/null)
-        } || (\cd "$_fenvdir/.fly.d/plugins" && git clone "$_fgithub/$2" -q)
+        [ -d "$FLY_HOME/.fly.d/.git" ] && {
+            (\cd "$FLY_HOME/.fly.d" && git submodule add "$_fgithub/$2" "plugins/${2##*/}" 2>/dev/null)
+        } || (\cd "$FLY_HOME/.fly.d/plugins" && git clone "$_fgithub/$2" -q)
         _fsource_plugins "${2#*/}"
     ;;
     del)
-        [ -d "$_fenvdir/.fly.d/.git" ] && {
-            (\cd "$_fenvdir/.fly.d" && git submodule deinit -f "plugins/${2##*/}" 2>/dev/null)
+        [ -d "$FLY_HOME/.fly.d/.git" ] && {
+            (\cd "$FLY_HOME/.fly.d" && git submodule deinit -f "plugins/${2##*/}" 2>/dev/null)
         }
-        rm -rf "$_fenvdir/.fly.d/plugins/${2##*/}"
+        rm -rf "$FLY_HOME/.fly.d/plugins/${2##*/}"
     ;;
     update)
         [ ! "$2" ] && echo "usage: fly update <plugin>" && return 1 
-        (\cd "$_fenvdir/.fly.d/plugins/${2#*/}" && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
+        (\cd "$FLY_HOME/.fly.d/plugins/${2#*/}" && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
         _fsource_plugins "${2#*/}"
     ;;
     updateall)
         _fzsh_glob fix
-        for plugin in $(ls -d "$_fenvdir/.fly.d/plugins"/*/.git) ;do
+        for plugin in $(ls -d "$FLY_HOME/.fly.d/plugins"/*/.git) ;do
             [ -d "$plugin" ] && (\cd "$plugin/.." && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
             [ -s "$plugin" ] && submodule=1
         done
-        [ "$submodule" ] && (\cd $_fenvdir/.fly.d && { 
+        [ "$submodule" ] && (\cd $FLY_HOME/.fly.d && { 
             git submodule update --remote --merge 2>/dev/null
             git submodule foreach git pull 2>/dev/null
         })
@@ -216,7 +219,7 @@ function fly
     ;;
     list)
         _fzsh_glob fix
-        (\cd "$_fenvdir/.fly.d/plugins" && ls -1 -- */*.plugin.$FLY_SHELL)
+        (\cd "$FLY_HOME/.fly.d/plugins" && ls -1 -- */*.plugin.$FLY_SHELL)
         _fzsh_glob reset
     ;;
     source)
@@ -229,28 +232,9 @@ function fly
 _fshell
 _fssh_ok
 
-# ssh -t xxx _fenvdir=/tmp/.fly.\$USER/xxx . <(curl -s http://xxx/thefly) remote --url http://xxx/thefly.tgz
-[ "$1" = "--url" ] && {
-    \cd "$_fenvdir" || return 1
-    curl -s -o ./.fly.pak -L "$2"
-    _fuuid=$(tar xzf fly.pak .fly.d/.flyuuid -O)
-    [ ! "$_fuuid" ] && echo "not fly package" && return 1
-    $_ftar xzf .fly.pak
-    rm -f .fly.pak
-    _flogin_shell
-}
-
-[ "$1" = "--git" ] && {
-    \cd "$_fenvdir" || return 1
-    [ -d .fly.d ] && {
-        [ -d .fly.d/.git ] && cd .fly.d && git pull origin "$(sed -e 's#.*/##' .git/HEAD)"
-    } || git clone "$_fgithub/$3" .fly.d
-    _flogin_shell
-}
-
 case "$1" in
-    login)      _fenvdir="${2:-$_fenvdir}";_fsource_profile;;
-    loginshell) _fenvdir="${2:-$_fenvdir}";_flogin_shell $_fdestshell;;
+    login)      _fsource_profile;;
+    loginshell) _flogin_shell $_fdestshell;;
     source)     _fsource_plugins;;
 esac
 
@@ -263,4 +247,4 @@ alias fsshk='_fdestshell=ksh fssh'
 alias fsudob='_fdestshell=bash fsudo'
 alias fsudoz='_fdestshell=zsh fsudo'
 alias fsudok='_fdestshell=ksh fsudo'
-
+set --
