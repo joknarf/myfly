@@ -14,3 +14,6 @@
 	path = plugins/seedee
 	url = https://github.com/joknarf/seedee
 	shallow = true
+[submodule "plugins/pgtree"]
+	path = plugins/pgtree
+	url = https://github.com/joknarf/pgtree
