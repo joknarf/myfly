@@ -1,4 +1,2 @@
-.bashrc
-.kshrc
-.zshrc
 fly
+.fly.lib
