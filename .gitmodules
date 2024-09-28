@@ -1,18 +1,20 @@
 [submodule "plugins/redo"]
 	path = plugins/redo
 	url = https://github.com/joknarf/redo
+	shallow = true
 [submodule "plugins/nerdp"]
 	path = plugins/nerdp
 	url = https://github.com/joknarf/nerdp
+	shallow = true
 [submodule "plugins/complete-ng"]
 	path = plugins/complete-ng
 	url = https://github.com/joknarf/complete-ng
+	shallow = true
 [submodule "plugins/seedee"]
 	path = plugins/seedee
 	url = https://github.com/joknarf/seedee
+	shallow = true
 [submodule "plugins/pgtree"]
 	path = plugins/pgtree
 	url = https://github.com/joknarf/pgtree
-[submodule "plugins/nerdps1"]
-	path = plugins/nerdps1
-	url = https://github.com/joknarf/nerdps1
+	shallow = true
