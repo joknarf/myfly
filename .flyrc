@@ -1,0 +1,155 @@
+#echo "joknarf .flyrc" >&2
+
+add_path()
+{
+    typeset before=false p
+    for p in "$@"
+    do
+        [ "$p" = "-b" ] && before=true && continue
+        [ -d "$p" ] || continue
+        [[ ":$PATH:" = *:$p:* ]] && continue
+        $before && PATH=$p:$PATH || PATH=$PATH:$p
+    done
+}
+
+umask 022
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+add_path ~/.cargo/bin /usr/games -b /usr/gnu/bin /opt/homebrew/sbin /opt/homebrew/bin ~/.local/bin $FLY_HOME/.fly.d/bin
+
+export TERM=xterm-256color
+set -o vi
+export EDITOR=vi
+export INPUTRC="$FLY_HOME/.fly.d/.inputrc"
+
+HISTCONTROL=ignorespace
+HISTIGNORE="cd:cd *:history:ls:l:pwd:df:df -k:kill *:top:clear"
+HISTFILESIZE=10000
+HISTSIZE=10000
+
+alias to='fsshb'
+
+export DONT_PROMPT_WSL_INSTALL=1
+
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+
+[ -d /opt/homebrew ] && {
+    export HOMEBREW_PREFIX="/opt/homebrew";
+    export HOMEBREW_CELLAR="/opt/homebrew/Cellar";
+    export HOMEBREW_REPOSITORY="/opt/homebrew";
+    export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:";
+    export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}";
+    FPATH=$(brew --prefix)/share/zsh-completions:$FPATH
+}
+
+type vim >/dev/null 2>&1 && {
+  unalias vi 2>/dev/null
+  alias vi=vim
+  export VIMINIT="source $FLY_HOME/.fly.d/.vimrc" 
+}
+
+# screen tmux
+alias scwin='cd $FLY_HOME/.fly.d/.fly.lib;screen -dmA -c ../.screenrc bash --rcfile .bashrc;screen -r'
+alias flytmux='cd $FLY_HOME/.fly.d;FLY_HOME=$FLY_HOME tmux -f .tmux.conf;cd $OLDPWD'
+alias tmwin='flytmux -L $$ new -d;tmux -L $$ a'
+alias tmuxa='tmux a || { flytmux new -d;tmux a; }'
+alias tmuxcap='tmux capture-pane -p -e -S -'
+alias tmuxcap2='tmux capture-pane -p -e -S - -t' #pane 
+tmuxls() {
+  for sock in /tmp/tmux-$UID/*; do
+    tmux -S "$sock" ls 2>/dev/null | sed "s/^/tmux -L ${sock##*/} a : /"
+  done
+}
+
+# dfbar 
+unalias df dfb 2>/dev/null
+alias df='dfb'
+alias dfh='dfb -h'
+
+# lsicon
+export LSI_HIDE_TREE='__pycache__|venv|.venv|.git'
+unalias ls lss l ll lh llh t lt llt 2>/dev/null
+alias ls='ls+'
+alias t='ls -T'
+alias lss='ls --color --group-directories-first -X'
+alias l='ls -l --color'
+alias la='l -a'
+alias lt='l -T'
+alias ll='lss -l'
+alias lla='ll -a'
+alias lh='l -Srh'
+alias llh='ll -h'
+alias llt='lt --group-directories-first'
+
+# aliases
+alias cl='clear'
+alias res='domr -H'
+export LESS="-RESX"
+alias less='less -r'
+
+# seedee
+CDHISTBIND='\e[1;2B \e[1;5B ² \e:'
+CDINITDIRS="/usr/lib/systemd/system
+/var/log"
+
+# nerdp
+ps1_display=nerdicons
+ps1_info="ps1_osinfo"
+ps1_info_vars="{FLY_SHELL##*/}"
+ps1_user_char=" •"
+ps1_root_char=" ⵙ" #◆ ► ● ⚫ ⚪ ▲ ➽ ➤ ✪ ✇ ►◄⏩ ✨ ♦ ◙ ⵔ ✚ ⛯ ➕ ♯ ⛛ ✮ ✱ ⵙ ⵔ
+
+# python
+type python >/dev/null 2>&1 || alias python='python3'
+alias json='python -m json.tool'
+unset _OLD_VIRTUAL_PATH
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+[ -d ~/py3 ] && . ~/py3/bin/activate 
+
+# ish tty bug workaround (tput ed bug)
+KERNEL=$(uname -r)
+[[ $KERNEL = *ish ]] && touch $FLY_HOME/.fly.d/.ish_tty
+[ -f $FLY_HOME/.fly.d/.ish_tty ] && tput() {
+  [ ! "$_items" ] && /usr/bin/tput "$@" && return
+  case "$1" in
+    'ed')
+      printf '\033[6n' > /dev/tty
+      IFS=';' read -r -d R row col < /dev/tty
+      row=${row#*\[}
+      [ "$row" = "$LINES" ] && return
+      typeset -i l=$((LINES-$row))
+      typeset -i i=$l
+      while [ $i -ge 0 ];do
+        printf '%*s' $COLUMNS ''
+        printf '\r'
+        [ $i = 0 ] && break
+        /usr/bin/tput cud1
+        ((i=i-1))
+      done
+      /usr/bin/tput cuu $l
+    ;;
+    *) /usr/bin/tput "$@";;
+  esac
+}
+
+unset DFBAR_BEGIN
+unset DFBAR_END
+unset SELECTOR_POWERLINE
+unset ICON_FILE
+nonerdfont() {
+  SELECTOR_POWERLINE=n
+  CDPOWERLINE=n
+  export DFBAR_BEGIN="■"
+  export DFBAR_END="■"
+  ps1_display nofont
+  ps1_powerline="/auto:exit_status /lblack:elapse /blue:userhost )/auto:git_branch )/lblack:cwd > | (/lblue/black/blue:info (/auto:addon (/magenta/white:venv (/auto:dfcheck (/auto:loadavg (/auto:freemem (/blue:time"
+  ps1_set
+  SELECTOR_FOLDER_ICON="📁"
+  SELECTOR_FILE_ICON="📄"
+  export ICON_FILE=$FLY_HOME/.fly.d/bin/ls+.basic
+}
+#ps1_powerline="(/auto:exit_status (/lblack:elapse (/blue:userhost )/auto:git_branch )/lblack:cwd > | (/lblue/black/blue:info (/auto:dfcheck (/auto:loadavg (/auto:freemem (/blue:time )"
+
+FLY_MSG="Hello"
+
+

@@ -1,0 +1,28 @@
+freemem() 
+{ 
+    typeset cmd;
+    [ -x /usr/bin/vm_stat ] && cmd='vm_stat';
+    [ -r /proc/meminfo ] && cmd='cat /proc/meminfo';
+    [ ! "$cmd" ] && [ -r /var/run/dmesg.boot ] && cmd='grep avail.memory /var/run/dmesg.boot';
+    [ ! "$cmd" ] && return;
+    eval "$cmd" | awk '
+        /MemAvailable:/ { avail = $2 }
+        /Buffer:|Cached:|MemFree:/ { free += $2 }
+        /page size of/ { ps=$(NF-1) }
+        /^Pages (free|inactive|purgeable|speculative):/{ free += (($NF * ps) / 1024) }
+        /avail memory = /{ avail = $4/1024 }
+        END {
+            split("K M G T P E Z Y", suff)
+            if (avail) free = avail
+            if (free=="") exit(1)
+            for(i=1;i<=length(suff);i++) {
+                if (free > 1024) free/=1024
+                else break
+            }
+            free=sprintf("%.2f%s", free, suff[i]);
+            print(free)
+        }
+    ' ps=1
+}
+type free >/dev/null 2>/dev/null && free -h | awk '/Mem:/ {print $(NF) "/" $2}' && exit
+freemem

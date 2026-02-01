@@ -1,0 +1,1 @@
+echo $(users |wc -w)" users"

@@ -1,0 +1,17 @@
+pane_pid=$(tmux display -p '#{pane_pid}' 2>/dev/null)
+ps --ppid $pane_pid -o pid=,cmd= | awk '
+  $1==pid{next}
+  {
+    $1=""
+    sub("-F [^ ]* ", "")
+    gsub("^ | $", "")
+    $0=$0
+    for(i=1;i<=NF;i++)
+      sub(".*/","",$i)
+    print $0
+    e=0
+  } 
+  END {
+    exit(e)
+  }
+' pid=$$ e=1|| tmux display -p '#{pane_current_command}'

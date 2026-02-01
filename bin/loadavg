@@ -1,0 +1,6 @@
+[ -r /proc/loadavg ] && load=$(cat /proc/loadavg) || {
+    load=$(LANG=C uptime)
+    load=${load#*load average*: }
+    load=${load//,/}
+}
+echo "${load%% *}"

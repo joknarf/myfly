@@ -1,0 +1,13 @@
+#!/bin/bash
+
+tryconnect() {
+  typeset ip=$1 port=$2 r
+  timeout 1 bash -c "cat < /dev/null > /dev/tcp/$ip/$port"
+  r=$?
+  [ $r = 0 ] && echo connected && return 0
+  [ $r = 124 ] && echo timeout && return 1
+  echo "refused/failed"
+  return $r
+}
+
+tryconnect "$@"
