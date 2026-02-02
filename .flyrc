@@ -109,28 +109,6 @@ export VIRTUAL_ENV_DISABLE_PROMPT=1
 # ish tty bug workaround (tput ed bug)
 KERNEL=$(uname -r)
 [[ $KERNEL = *ish ]] && touch $FLY_HOME/.fly.d/.ish_tty
-[ -f $FLY_HOME/.fly.d/.ish_tty ] && tput() {
-  [ ! "$_items" ] && /usr/bin/tput "$@" && return
-  case "$1" in
-    'ed')
-      printf '\033[6n' > /dev/tty
-      IFS=';' read -r -d R row col < /dev/tty
-      row=${row#*\[}
-      [ "$row" = "$LINES" ] && return
-      typeset -i l=$((LINES-$row))
-      typeset -i i=$l
-      while [ $i -ge 0 ];do
-        printf '%*s' $COLUMNS ''
-        printf '\r'
-        [ $i = 0 ] && break
-        /usr/bin/tput cud1
-        ((i=i-1))
-      done
-      /usr/bin/tput cuu $l
-    ;;
-    *) /usr/bin/tput "$@";;
-  esac
-}
 
 unset DFBAR_BEGIN
 unset DFBAR_END

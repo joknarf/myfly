@@ -5,3 +5,41 @@ OSVERSION="$ps1_osinfo"
     complete -F _ssh to flyto fssh
   }
 }
+
+[ -f $FLY_HOME/.fly.d/.ish_tty ] && _tput() {
+    case "$1" in
+        # -------- Erase eol/eos ----------
+        el)  printf '\e[K' ;;
+        ed)  [ ! "$_items" ] && return
+            printf '\033[6n' > /dev/tty
+            IFS=';' read -r -d R row col < /dev/tty
+            row=${row#*\[}
+            [ "$row" = "$LINES" ] && return
+            typeset -i l=$((LINES-$row))
+            typeset -i i=$l
+            while [ $i -ge 0 ];do
+              printf '  \e[K\r'
+              [ $i = 0 ] && break
+              printf '\e[1B' #cud1
+              ((i=i-1))
+            done
+            printf '\e[%dA' $l #cuu
+        ;;
+        # -------- Cursor movement --------
+        cuu) printf '\e[%dA' "${2:-1}" ;;
+        cud) printf '\e[%dB' "${2:-1}" ;;
+        cuu1) printf '\e[1A' ;;
+        cud1) printf '\e[1B' ;;
+        cuf) printf '\e[%dC' "${2:-1}" ;;
+        cub) printf '\e[%dD' "${2:-1}" ;;
+        cuf1) printf '\e[1C' ;;
+        cub1) printf '\e[1D' ;;
+        # -------- Cursor visibility --------
+        civis) printf '\e[?25l' ;;
+        cnorm) printf '\e[?25h' ;;
+        # -------- Terminal size --------
+        lines) printf '%s\n' "${LINES:-24}" ;;
+        cols) printf '%s\n' "${COLUMNS:-80}" ;;
+        *)  tput "$@" ;;
+    esac
+}
