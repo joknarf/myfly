@@ -96,8 +96,8 @@ CDINITDIRS="/usr/lib/systemd/system
 ps1_display=nerdicons
 ps1_info="ps1_osinfo"
 ps1_info_vars="{FLY_SHELL##*/}"
-ps1_user_char=" •"
-ps1_root_char=" ★" #◆ ► ● ⚫ ⚪ ▲ ➽ ➤ ✪ ✇ ►◄⏩ ✨ ♦ ◙ ⵔ ✚ ⛯ ➕ ♯ ⛛ ✮ ✱ ⵙ ⵔ ★
+#ps1_user_char=" •"
+#ps1_root_char=" ▲" #◆ ► ● ⚫ ⚪ ▲ ➽ ➤ ✪ ✇ ►◄⏩ ✨ ♦ ◙ ⵔ ✚ ⛯ ➕ ♯ ⛛ ✮ ✱ ⵙ ⵔ ★
 
 # python
 type python >/dev/null 2>&1 || alias python='python3'
