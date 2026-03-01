@@ -48,9 +48,10 @@ type vim >/dev/null 2>&1 && {
   export VIMINIT="source $FLY_HOME/.fly.d/.vimrc" 
 }
 
+[ -d "$XDG_RUNTIME_DIR" ] && export TMUX_TMPDIR="$XDG_RUNTIME_DIR"
 # screen tmux
 alias scwin='cd $FLY_HOME/.fly.d/.fly.lib;screen -dmA -c ../.screenrc bash --rcfile .bashrc;screen -r'
-alias flytmux='cd $FLY_HOME/.fly.d;FLY_HOME=$FLY_HOME tmux -f .tmux.conf;cd $OLDPWD'
+alias ftmux='cd $FLY_HOME/.fly.d;FLY_HOME=$FLY_HOME tmux -f .tmux.conf;cd $OLDPWD'
 alias tmwin='flytmux -L $$ new -d;tmux -L $$ a'
 alias tmuxa='tmux a || { flytmux new -d;tmux a; }'
 alias tmuxcap='tmux capture-pane -p -e -S -'
@@ -128,6 +129,6 @@ nonerdfont() {
 }
 #ps1_powerline="(/auto:exit_status (/lblack:elapse (/blue:userhost )/auto:git_branch )/lblack:cwd > | (/lblue/black/blue:info (/auto:dfcheck (/auto:loadavg (/auto:freemem (/blue:time )"
 
-FLY_MSG="Hello"
+#FLY_MSG="Hello"
 
 

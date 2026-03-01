@@ -6,7 +6,20 @@ histappend() {
     printf '\e[?1h' >&2 #Moba shift arrow
 }
 
+type -p resize >/dev/null 2>&1 || resize() {
+  typeset oldstty rows cols
+  oldstty=$(stty -g)
+  stty raw -echo min 0 time 5
+  printf '\033[18t' > /dev/tty
+  IFS=';' read -r -d t _ rows cols < /dev/tty
+  stty "$oldstty"
+  if [[ $rows =~ ^[0-9]+$ && $cols =~ ^[0-9]+$ ]]; then
+    printf 'stty rows "%s" cols "%s"' "$rows" "$cols"
+  fi
+}
+
 PROMPT_COMMAND="histappend"
+[ "$RBS" ] && PROMPT_COMMAND+=";. <(resize 2>/dev/null)" && sleep 1
 unset VSCODE_SHELL_INTEGRATION
 
 [ "$BASH_COMPLETION$BASH_COMPLETION_COMPAT_DIR$BASH_COMPLETION_VERSION_INFO" ] || {
