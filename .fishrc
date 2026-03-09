@@ -1,0 +1,4 @@
+echo fish
+set -p PATH $FLY_HOME/.fly.d/bin
+alias df=dfb
+alias ls=ls+

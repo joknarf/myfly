@@ -131,4 +131,5 @@ nonerdfont() {
 
 #FLY_MSG="Hello"
 
-
+FLY_TARZ=-J
+typeset +x PS1
