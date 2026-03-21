@@ -10,6 +10,8 @@
 #
 type gdf >/dev/null 2>&1 && df=gdf || df=df
 [ -t 1 ] || exec $df "$@"
+shopt -s extglob
+[[ $1 = @(--help|--version) ]] && exec $df "$@"
 # RGB custom colors : free used warn alert
 : ${DFBAR_COLORS:="36;114;67 30;90;180 175;138;27 160;0;0"}
 : ${DFBAR_BEGIN:=''}
@@ -19,7 +21,7 @@ dfbar() {
   typeset dfopt=( -T -x fuse.snapfuse -x overlay -x rootfs -x devtmpfs -x efivarfs ) all df="${df:-df}"
   [[ " $*" = *\ -*a ]] && dfopt=( -T ) && all=1;
   set -o pipefail
-  $df -P "${dfopt[@]}" "$@" | awk -v sym1="$DFBAR_BEGIN" -v sym2="$DFBAR_END" -v all=$all -v col="$DFBAR_COLORS" '
+  LANG=C $df -P "${dfopt[@]}" "$@" | awk -v sym1="$DFBAR_BEGIN" -v sym2="$DFBAR_END" -v all=$all -v col="$DFBAR_COLORS" '
   BEGIN {
     barlen=10
     esc="\033["
