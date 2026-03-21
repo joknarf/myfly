@@ -1,0 +1,12 @@
+FLY_SHELL="$_fly_destshell"
+[ "$FLY_SHELL$POSIXLY_CORRECT" ] || case "$BASH_VERSION$ZSH_VERSION$KSH_VERSION" in
+    "");;
+    "$BASH_VERSION") FLY_SHELL="bash";;
+    "$ZSH_VERSION") FLY_SHELL="zsh";;
+    "$KSH_VERSION") FLY_SHELL="ksh";;
+esac
+: "${FLY_SHELL:=$SHELL}"
+case "$FLY_SHELL" in 
+    *bash|*ksh|*zsh|*fish) return;;
+    *) FLY_SHELL=bash;
+esac

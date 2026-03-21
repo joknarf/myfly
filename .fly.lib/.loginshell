@@ -1,0 +1,13 @@
+# /!\ sourced by /bin/sh
+FLY_HOME="${1:-$FLY_HOME}"
+\cd "$FLY_HOME/.fly.d/.fly.lib"
+. ./.teleport
+echo >.teleport
+. ./.fshell
+[ ! -t 0 ] && [ -t 1 ] && exec <&1
+case "$FLY_SHELL" in
+    *bash) PS1="" exec $FLY_SHELL --rcfile ".bashrc";;
+    *zsh)  ZDOTDIR=$FLY_HOME/.fly.d/.fly.lib exec $FLY_SHELL -d;;
+    *ksh)  ENV=$FLY_HOME/.fly.d/.fly.lib/.login exec $FLY_SHELL;;
+    *fish) exec $FLY_SHELL -C ". .fishrc";;
+esac

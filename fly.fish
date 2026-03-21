@@ -1,11 +1,8 @@
 if test (count $argv) -gt 0 -a "$argv[1]" != source
     set -e _fly_loaded
 end
-# if set -q _fly_loaded
-#     return
-# end
+if not set -q _fly_loaded
 
-# default values ----------------------------------------------------------------
 not set -q FLY_MSG && set -x FLY_MSG "Bzzz Bzzz !!!"
 echo $FLY_MSG >&2
 set -x _fly_loaded 1
@@ -24,6 +21,8 @@ switch "$argv[1]"
     case login
         . $_fly_lib/.login.fish
         . $_fly_lib/.source_plugins.fish
+        test -n "$_fly_lock" && flock -u 4 2>/dev/null #fish cannot close fd...
+        set -e _fly_lock
 end
 
 function fly
@@ -37,3 +36,4 @@ end
 alias fly.fish='. $FLY_HOME/.fly.d/fly.fish'
 
 . $_fly_lib/aliases
+end # fish cannot return...
