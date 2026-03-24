@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # coding: utf-8
 # pylint: disable=C0114,C0413,R0902,C0209
-# determine available python executable
-# determine ps -o options
 _=''''
 #[ "$1" = -W ] && shift && exec watch -x -c -- "$0" -C y "$@"
 export LANG=en_US.UTF-8 PYTHONUTF8=1 PYTHONIOENCODING=utf8
@@ -22,34 +20,6 @@ read python <<<"$(type -p python3 python python2)"
 echo "ERROR: cannot find python interpreter" >&2
 exit 1
 '''
-
-"""
-Program for showing the hierarchy of specific processes on a Unix computer.
-Like pstree but with searching for specific processes with pgrep first and display
-hierarchy of matching processes (parents and children)
-should work on any Unix supporting commands :
-# pgrep
-# ps ax -o pid,ppid,comm,args
-(RedHat/CentOS/Fedora/Ubuntu/Suse/Solaris...)
-Compatible python 2 / 3
-
-Example:
-$ ./pgtree.py sshd
-  1 (root) [init] /init
-  └─6 (root) [init] /init
-    └─144 (root) [systemd] /lib/systemd/systemd --system-unit=basic.target
-►     └─483 (root) [sshd] /usr/sbin/sshd -D
-►       └─1066 (root) [sshd] sshd: joknarf [priv]
-►         └─1181 (joknarf) [sshd] sshd: joknarf@pts/1
-            └─1182 (joknarf) [bash] -bash
-              ├─1905 (joknarf) [sleep] sleep 60
-              └─1906 (joknarf) [top] top
-
-Reminder for compatibility with old python versions:
-no dict comprehension or dict simili comprehension
-no f string or string .format()
-no inline if
-"""
 
 __author__ = "Franck Jouvanceau"
 __copyright__ = "Copyright 2020, Franck Jouvanceau"
@@ -72,6 +42,7 @@ except ImportError:
         """shlex.join for python2"""
         return ' '.join([pipes.quote(c) for c in cmd_list])
 
+os.environ["LANG"] = "C"
 # impossible detection using ps for AIX/MacOS
 # stime is not start time of process
 system = platform.system()

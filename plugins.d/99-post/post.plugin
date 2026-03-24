@@ -2,7 +2,7 @@ OSVERSION="$ps1_osinfo"
 [ "$BASH" ] && {
   declare -F _completion_loader >/dev/null && {
     _completion_loader ssh
-    complete -F $_compfunc_ssh to flyto fssh
+    complete -F $_compfunc_ssh to fto flyto fssh
   }
 }
 
