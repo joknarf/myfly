@@ -2,3 +2,6 @@ $include /etc/inputrc
 set editing-mode vi
 set completion-ignore-case On
 #"\C-x": "texte inséré"
+"\e[A": ""
+"\e[B": ""
+
