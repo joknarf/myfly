@@ -15,15 +15,19 @@ set -x _fly_lib $FLY_HOME/.fly.d/.fly.lib
 set -x FLY_SHELL fish 
 set -x _fly_fish true
 
+test -n "$_fly_lock" && trap 'flock -u 4 2>/dev/null' INT TERM EXIT
+
 switch "$argv[1]"
     case source activate
         source $_fly_lib/.source_plugins.fish
     case login
         . $_fly_lib/.login.fish
         . $_fly_lib/.source_plugins.fish
-        test -n "$_fly_lock" && flock -u 4 2>/dev/null #fish cannot close fd...
-        set -e _fly_lock
 end
+test -n "$_fly_lock" && trap - INT TERM EXIT && flock -u 4 2>/dev/null #fish cannot close fd...
+set -e _fly_lock
+test -n "$_fly_share" && trap 'flock -n 5 && flock "$FLY_HOME/.fly.lock" rm -rf "$FLY_HOME"/.fly.* && rmdir "$FLY_HOME" 2>/dev/null' HUP EXIT
+set -e _fly_share
 
 function fly
    FLY_HOME="$FLY_HOME" bash -c 'args=("$@");. $FLY_HOME/.fly.d/fly "${args[@]}"' _ $argv
