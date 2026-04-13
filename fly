@@ -6,6 +6,7 @@
 : "${FLY_MSG:=Bzzz Bzzz !!!}"
 _fly_loaded=1
 : "${FLY_HOME:=$HOME}"
+export FLY_HOME
 : "${FLY_RC:=$HOME/.flyrc}"
 : "${_fly_github:=https://github.com}"
 : "${_fly_githubraw:=https://raw.githubusercontent.com}"
@@ -17,6 +18,8 @@ _fly_lib="$FLY_HOME/.fly.d/.fly.lib"
 . "$_fly_lib/.fshell"
 alias fly=". $FLY_HOME/.fly.d/fly"
 . "$_fly_lib/aliases"
+
+[ "$_fly_lock" ] && trap 'flock -u 4' INT TERM HUP
 
 type gtar >/dev/null 2>&1 && _fly_tar=gtar || _fly_tar=tar
 [[ "$($_fly_tar --version 2>/dev/null)" = *busybox* ]] && {
@@ -86,8 +89,7 @@ case "$1" in
         unset _fly_destshell FLY_ETC_RC FLY_USER_RC
     ;;
     loginshell|install)
-        shift
-        . "$_fly_lib/.loginshell" "$FLY_HOME" 
+        . "$_fly_lib/.loginshell"
     ;;
     source|activate)
         shift
@@ -157,8 +159,8 @@ function _fly_xpretar
 umask 077;mkdir -p "$FLY_HOME"
 ! chmod 700 "$FLY_HOME" && echo "Not owner of $FLY_HOME. Abort" >&2 && exit 1
 type gtar >/dev/null 2>&1 && tar=gtar || tar=tar
-exec 4<>"$FLY_HOME/.fly.lock";flock 4 2>/dev/null
-_fly_lock=1
+exec 4<>"$FLY_HOME/.fly.lock"
+flock 4 2>/dev/null && _fly_lock=1
 rm -rf "$FLY_HOME/.fly.d"
 EOF
 }
@@ -172,7 +174,7 @@ function _fly_sudo
 {
     typeset user="${1:-root}"
     \cd /
-    _fly_pkg_warp| sudo -Hu "$user" '/bin/sh'
+    sudo -Hu "$user" '/bin/sh' <<<"$(_fly_pkg_warp)"
     \cd "$OLDPWD"
 }
 
@@ -240,12 +242,12 @@ function _fly_ssh
     done
     [ ! "$ssh_config" ] && [ -f ~/.ssh/config ] && ssh_config="Include $HOME/.ssh/config"
     cmd="${cmd//$'\n'/;}"
-    cat - <<_EOF_ >"$FLY_HOME/.fly_ssh"
+    cat - <<_EOF_ >"$FLY_HOME/.fly.ssh"
 RequestTTY yes
 RemoteCommand $cmd
 $ssh_config
 _EOF_
-    \cd $FLY_HOME;ssh -F .fly_ssh "$@";\cd $OLDPWD
+    \cd $FLY_HOME;ssh -F .fly.ssh "$@";\cd $OLDPWD
 }
 
 function _fly_ssh2
@@ -269,8 +271,7 @@ function _fly
             shift
             [ "$1" ] && ! type "$1" >/dev/null 2>&1 && echo "Cannot find shell $1" >&2 && return 1
             unset _fly_fish
-            _fly_destshell="${1:-$FLY_SHELL}"
-            . "$_fly_lib/.loginshell" "$FLY_HOME"
+            _fly_destshell="${1:-$FLY_SHELL}" exec sh "$_fly_lib/.loginshell"
         ;;
         ssh|to) 
             shift
@@ -294,5 +295,8 @@ function _fly
 }
 
 unset -f _fly_usage
-[ "$_fly_lock" ] && exec 4<&- # unlock teleportation
+[ "$_fly_lock" ] && trap - INT TERM HUP && flock -u 4 && exec 4<&- # unlock teleportation
 unset _fly_lock
+[ "$_fly_share" ] && trap 'flock -n 5 && flock "$FLY_HOME/.fly.lock" rm -rf "$FLY_HOME"/.fly.* && rmdir "$FLY_HOME" "${FLY_HOME%/*}" 2>/dev/null' HUP EXIT
+unset _fly_share
+:
