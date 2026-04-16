@@ -35,78 +35,6 @@ function _fly_zsh_glob
     esac
 }
 
-case "$1" in
-    help)  cat "$_fly_lib/usage";;
-    login)      
-        shift 
-        echo "$FLY_MSG" >&2
-        . "$_fly_lib/.login.${FLY_SHELL##*/}"
-        . "$_fly_lib/.source_plugins"
-        [ "$_fly_cmd" ] && {
-          [ "$ZSH_VERSION" ] && setopt SH_WORD_SPLIT
-          eval "$_fly_cmd" ; exit $?;
-        }
-        unset _fly_destshell FLY_ETC_RC FLY_USER_RC
-    ;;
-    loginshell|install)
-        export _fly_destshell FLY_ETC_RC FLY_USER_RC
-        exec sh "$_fly_lib/.loginshell"
-    ;;
-    source|activate)
-        shift
-        [ "$_fly_fish" ] && return
-        . "$_fly_lib/.source_plugins" "$1"
-    ;;
-    add)
-        shift
-        [ -d "$FLY_HOME/.fly.d/.git" ] && {
-            (\cd "$FLY_HOME/.fly.d" && git submodule add "$_fly_github/$1" "plugins/${1##*/}" 2>/dev/null)
-        } || (\cd "$FLY_HOME/.fly.d/plugins" && git clone "$_fly_github/$1" -q >/dev/null)
-        (\cd "$FLY_HOME/.fly.d" && git config -f ".gitmodules submodule.plugins/${1##*/}.shallow" true >/dev/null 2>/dev/null)
-        ln -s ../plugins/${1##*/} $FLY_HOME/.fly.d/plugins.d/50-${1##*/}
-        set --
-        [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins" "${1#*/}"
-        :
-    ;;
-    del)
-        shift
-        [ ! "$1" ] && echo "usage: fly del <plugin>" >&2 && return 1
-        [ ! -d "$FLY_HOME/.fly.d/plugins/${1##*/}" ] && echo "plugin ${1##*/} not found" >&2 && return 1
-        [ -d "$FLY_HOME/.fly.d/.git" ] && {
-            (\cd "$FLY_HOME/.fly.d" && git submodule deinit -f "plugins/${1##*/}" && \
-                git add .gitmodules
-                git rm --cached "plugins/${1##*/}"
-                git config -f .gitmodules --remove-section "submodule.plugins/${1##*/}"
-            ) 2>/dev/null
-        } 
-        rm -rf "$FLY_HOME/.fly.d/plugins/${1##*/}" "$FLY_HOME/.fly.d/.git/modules/plugins/${1##*/}" "$FLY_HOME/.fly.d/plugins.d/"??-"${1##*/}"
-    ;;
-    update)
-        shift
-        [ ! "$1" ] && echo "usage: fly update <plugin>" >&2 && return 1 
-        (\cd "$FLY_HOME/.fly.d/plugins/${1#*/}" && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
-        [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins" "${1#*/}"
-    ;;
-    updateall)
-        shift
-        _fly_zsh_glob fix
-        for plugin in $(ls -d "$FLY_HOME/.fly.d/plugins"/*/.git) ;do
-            [ -d "$plugin" ] && (\cd "$plugin/.." && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
-            [ -s "$plugin" ] && submodule=1
-        done
-        [ "$submodule" ] && (\cd $FLY_HOME/.fly.d && { 
-            git submodule update --remote --merge 2>/dev/null
-            git submodule foreach git pull 2>/dev/null
-        })
-        _fly_zsh_glob reset
-        [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins"
-    ;;
-    upgrade)
-        shift
-        . <(curl -s -L -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' "$_fly_githubraw/$_fly_gitrepo/main/thefly") install
-    ;;
-esac
-
 function _fly_package
 {
     [ "$FLY_RC" ] && [ -r "$FLY_RC" ] && cp "$FLY_RC" "$_fly_lib"
@@ -258,6 +186,78 @@ function _fly
     esac
     unset _fly_destshell
 }
+
+case "$1" in
+    help)  cat "$_fly_lib/usage";;
+    login)      
+        shift 
+        echo "$FLY_MSG" >&2
+        . "$_fly_lib/.login.${FLY_SHELL##*/}"
+        . "$_fly_lib/.source_plugins"
+        [ "$_fly_cmd" ] && {
+          [ "$ZSH_VERSION" ] && setopt SH_WORD_SPLIT
+          eval "$_fly_cmd" ; exit $?;
+        }
+        unset _fly_destshell FLY_ETC_RC FLY_USER_RC
+    ;;
+    loginshell|install)
+        export _fly_destshell FLY_ETC_RC FLY_USER_RC
+        exec sh "$_fly_lib/.loginshell"
+    ;;
+    source|activate)
+        shift
+        [ "$_fly_fish" ] && return
+        . "$_fly_lib/.source_plugins" "$1"
+    ;;
+    add)
+        shift
+        [ -d "$FLY_HOME/.fly.d/.git" ] && {
+            (\cd "$FLY_HOME/.fly.d" && git submodule add "$_fly_github/$1" "plugins/${1##*/}" 2>/dev/null)
+        } || (\cd "$FLY_HOME/.fly.d/plugins" && git clone "$_fly_github/$1" -q >/dev/null)
+        (\cd "$FLY_HOME/.fly.d" && git config -f ".gitmodules submodule.plugins/${1##*/}.shallow" true >/dev/null 2>/dev/null)
+        ln -s ../plugins/${1##*/} $FLY_HOME/.fly.d/plugins.d/50-${1##*/}
+        set --
+        [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins" "${1#*/}"
+        :
+    ;;
+    del)
+        shift
+        [ ! "$1" ] && echo "usage: fly del <plugin>" >&2 && return 1
+        [ ! -d "$FLY_HOME/.fly.d/plugins/${1##*/}" ] && echo "plugin ${1##*/} not found" >&2 && return 1
+        [ -d "$FLY_HOME/.fly.d/.git" ] && {
+            (\cd "$FLY_HOME/.fly.d" && git submodule deinit -f "plugins/${1##*/}" && \
+                git add .gitmodules
+                git rm --cached "plugins/${1##*/}"
+                git config -f .gitmodules --remove-section "submodule.plugins/${1##*/}"
+            ) 2>/dev/null
+        } 
+        rm -rf "$FLY_HOME/.fly.d/plugins/${1##*/}" "$FLY_HOME/.fly.d/.git/modules/plugins/${1##*/}" "$FLY_HOME/.fly.d/plugins.d/"??-"${1##*/}"
+    ;;
+    update)
+        shift
+        [ ! "$1" ] && echo "usage: fly update <plugin>" >&2 && return 1 
+        (\cd "$FLY_HOME/.fly.d/plugins/${1#*/}" && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
+        [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins" "${1#*/}"
+    ;;
+    updateall)
+        shift
+        _fly_zsh_glob fix
+        for plugin in $(ls -d "$FLY_HOME/.fly.d/plugins"/*/.git) ;do
+            [ -d "$plugin" ] && (\cd "$plugin/.." && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
+            [ -s "$plugin" ] && submodule=1
+        done
+        [ "$submodule" ] && (\cd $FLY_HOME/.fly.d && { 
+            git submodule update --remote --merge 2>/dev/null
+            git submodule foreach git pull 2>/dev/null
+        })
+        _fly_zsh_glob reset
+        [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins"
+    ;;
+    upgrade)
+        shift
+        . <(curl -s -L -H 'Pragma: no-cache' -H 'Cache-Control: no-cache' "$_fly_githubraw/$_fly_gitrepo/main/thefly") install
+    ;;
+esac
 
 [ "$_fly_lock" ] && trap - TERM && flock -u 4 && exec 4<&- # unlock teleportation
 [ "$_fly_share" ] && trap "flock -n 5 && flock '$_fly_share/.fly.lock' rm -rf '$_fly_share'/.fly.* && rmdir '$_fly_share' '${_fly_share%/*}' 2>/dev/null" EXIT
