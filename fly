@@ -196,9 +196,12 @@ case "$1" in
         . "$_fly_lib/.source_plugins"
         [ "$_fly_cmd" ] && {
           [ "$ZSH_VERSION" ] && setopt SH_WORD_SPLIT
-          eval "$_fly_cmd" ; exit $?;
+          eval "$_fly_cmd" ; e=$?
+          [ "$_fly_lock" ] && flock -u 4
+          [ "$_fly_share" ] && flock -n 5 && flock "$_fly_share/.fly.lock" rm -rf "$_fly_share"/.fly.* && rmdir "$_fly_share" "${_fly_share%/*}" 2>/dev/null
+          exit "$e"
         }
-        unset _fly_destshell FLY_ETC_RC FLY_USER_RC
+        unset _fly_destshell FLY_ETC_RC FLY_USER_RC 
     ;;
     loginshell|install)
         export _fly_destshell FLY_ETC_RC FLY_USER_RC
