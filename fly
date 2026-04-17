@@ -199,8 +199,10 @@ case "$1" in
         . "$_fly_lib/.source_plugins"
         [ "$_fly_cmd" ] && {
           _fly_cmd="$(base64 -d <<<"$_fly_cmd")" || exit 1
-          [ "$ZSH_VERSION" ] && setopt SH_WORD_SPLIT
-          eval $_fly_cmd ; e=$?
+          eval "cmd=($_fly_cmd)"
+          eval=eval
+          [ "${#cmd[@]}" = 1 ] && ! type $cmd >/dev/null 2>&1 && cmd=("$FLY_SHELL" -c "$cmd") && eval=''
+          $eval "${cmd[@]}" ; e=$?
           [ "$_fly_lock" ] && flock -u 4
           _fly_cleanup "$_fly_share"
           exit "$e"
