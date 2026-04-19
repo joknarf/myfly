@@ -19,6 +19,7 @@ add_path ~/.cargo/bin /usr/games -b /usr/gnu/bin /opt/homebrew/sbin /opt/homebre
 export TERM=xterm-256color
 set -o vi
 export EDITOR=vi
+type vim >/dev/null 2>&1 && EDITOR=vim
 export INPUTRC="$FLY_HOME/.fly.d/.inputrc"
 
 HISTCONTROL=ignorespace
@@ -130,6 +131,10 @@ nonerdfont() {
 #ps1_powerline="(/auto:exit_status (/lblack:elapse (/blue:userhost )/auto:git_branch )/lblack:cwd > | (/lblue/black/blue:info (/auto:dfcheck (/auto:loadavg (/auto:freemem (/blue:time )"
 
 #FLY_MSG="Hello"
-
+export LANG=en_US.UTF-8
 FLY_TARZ=-J
 typeset +x PS1
+#sleep 60 &
+#sleep 5
+#echo done >&2
+#exec 63>&- # close process substitution
