@@ -1,4 +1,3 @@
-\cd /;\cd
 typeset +x ENV
 ENV=~/.kshrc
 #alias typeset="typeset +r"
@@ -7,6 +6,5 @@ alias _src_etc_profile_d='true' # rhel
 $FLY_ETC_RC && . /etc/profile
 [ -r .profile ] && $FLY_USER_RC && . ./.profile
 [ -r "$ENV" ] && $FLY_USER_RC && . $ENV
-#unalias typeset
-#unalias readonly
+#unalias typeset readonly
 unalias _src_etc_profile_d
