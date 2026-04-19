@@ -61,12 +61,13 @@ function _fly_xpackage
 
 function _fly_sudo
 {
-    typeset user="${1:-root}"
+    typeset user="${1:-root}" e
     [ "$user" = '-' ] && user='root'
-    shift
+    [ "$1" ] && shift
     \cd /
-    sudo -Hu "$user" '/bin/sh' <<<"$(_fly_pkg_warp "$@")"
+    sudo -Hu "$user" '/bin/sh' <<<"$(_fly_pkg_warp "$@")"; e=$?
     \cd "$OLDPWD"
+    return $e
 }
 
 function _fly_ssh_ok
@@ -107,7 +108,7 @@ function _fly_pkg_login
 _fly_destshell="$_fly_destshell"
 FLY_ETC_RC="${FLY_ETC_RC:-true}"
 FLY_USER_RC="${FLY_USER_RC:-true}"
-export _fly_cmd="$([ "$1" ] && printf '%q ' "$@" |base64 -w 0)"
+_fly_cmd="$([ "$1" ] && printf '%q ' "$@" |base64 -w 0)"
 . "\$FLY_HOME/.fly.d/.fly.lib/.loginshell"
 EOF
 }
@@ -122,33 +123,37 @@ EOF
 
 function _fly_ssh
 {
-    typeset cmd ssh_args=() ssh_config ssh_argc=()
+    _ssh2()
+    {
+        _fly_package | ssh -o LogLevel=Error "$@" "/bin/sh -c '$(_fly_xpretar);$(_fly_xpackage)'" || return $?
+        ssh "$@" -t "exec /bin/sh -c 'FLY_HOME=\"$_fly_tmpdir\";$(_fly_pkg_login "${fly_cmd[@]}")'"
+    }
+    typeset cmd ssh_args=() ssh_config ssh_argc=() fly_cmd e
     while [ "$1" ];do
-        [ "$1" = -F ] && shift && ssh_config="Include $1" && ssh_argc=(-F "$1") && shift && continue
-        [ "$1" = -- ] && shift && fly_cmd=("$@") && break
-        ssh_args+=("$1")
+        case "$1" in
+        -F)  shift; ssh_config="Include $1"; ssh_argc=(-F "$1");;
+        -*F) ssh_args+=("${1%F}");shift;ssh_config="Include $1";ssh_argc=(-F "$1");;
+        -F*) ssh_config="Include ${1#-F}"; ssh_argc=("$1");;
+        -*F*) ssh_args+=("${1%%F*}");ssh_config="Include ${1#-*F}";ssh_argc=(-F "${1#-*F}");;
+        --)  shift && fly_cmd=("$@"); break;;
+        *)   ssh_args+=("$1");;
+        esac
         shift
     done
     cmd="exec /bin/sh -c '$(_fly_pkg_warp "${fly_cmd[@]}")'"
     cmd="${cmd//$'\n'/;}"
-    ! $_fly_ssh_ok && { _fly_ssh2 "${ssh_args[@]}" "${ssh_argc[@]}"; return $?; } 
-    [ ${#cmd} -gt 130000 ] && { _fly_ssh2 "${ssh_args[@]}" "${ssh_argc[@]}"; return $?; }
+    ! $_fly_ssh_ok && { _ssh2 "${ssh_args[@]}" "${ssh_argc[@]}"; return $?; } 
+    [ ${#cmd} -gt 130000 ] && { _ssh2 "${ssh_args[@]}" "${ssh_argc[@]}"; return $?; }
     [ ! "$ssh_config" ] && [ -f ~/.ssh/config ] && ssh_config="Include $HOME/.ssh/config"
     cat - <<_EOF_ >"$FLY_HOME/.fly.ssh"
 RequestTTY yes
 RemoteCommand $cmd
 $ssh_config
 _EOF_
-    \cd "$FLY_HOME";ssh -F .fly.ssh "${ssh_args[@]}";\cd "$OLDPWD"
-    unset fly_cmd
+    \cd "$FLY_HOME";ssh -F .fly.ssh "${ssh_args[@]}";e=$?;\cd "$OLDPWD"
+    return $e
 }
 
-function _fly_ssh2
-{
-    _fly_package | ssh -o LogLevel=Error "$@" "/bin/sh -c '$(_fly_xpretar);$(_fly_xpackage)'" || return $?
-    ssh "$@" -t "exec /bin/sh -c 'FLY_HOME=\"$_fly_tmpdir\";$(_fly_pkg_login "${fly_cmd[@]}")'"
-    unset fly_cmd
-}
 
 function _fly
 {
@@ -172,11 +177,13 @@ function _fly
             [ "$_fly_ssh_ok" ] || _fly_ssh_ok
             [ ! "$1" ] && echo "fly: error: missing destination/ssh params" && return 1
             _fly_ssh "$@"
+            return $?
         ;;
         sudo|as) 
             shift;
             [ "$_fly_destshell" ] && ! type "$_fly_destshell" >/dev/null 2>&1 && echo "Cannot find shell $2" >&2 && return 1
             _fly_sudo "$@"
+            return $?
         ;;
         pack)
             shift
@@ -184,7 +191,6 @@ function _fly
         ;;
         *) echo "unknown option, use 'fly help'";return 1;;
     esac
-    unset _fly_destshell
 }
 function _fly_cleanup
 {
@@ -195,19 +201,18 @@ case "$1" in
     login)      
         shift 
         echo "$FLY_MSG" >&2
+        \cd /;\cd
         . "$_fly_lib/.login.${FLY_SHELL##*/}"
         . "$_fly_lib/.source_plugins"
         [ "$_fly_cmd" ] && {
           _fly_cmd="$(base64 -d <<<"$_fly_cmd")" || exit 1
           eval "cmd=($_fly_cmd)"
-          eval=eval
-          [ "${#cmd[@]}" = 1 ] && ! type $cmd >/dev/null 2>&1 && cmd=("$FLY_SHELL" -c "$cmd") && eval=''
-          $eval "${cmd[@]}" ; e=$?
+          [ "${#cmd[@]}" = 1 ] && ! type "$cmd" >/dev/null 2>&1 && { . <(printf %s "$cmd"); e=$?; } || { eval "${cmd[@]}"; e=$?; }
           [ "$_fly_lock" ] && flock -u 4
           _fly_cleanup "$_fly_share"
           exit "$e"
         }
-        unset _fly_destshell FLY_ETC_RC FLY_USER_RC 
+        unset _fly_destshell FLY_ETC_RC FLY_USER_RC
     ;;
     loginshell|install)
         export _fly_destshell FLY_ETC_RC FLY_USER_RC
