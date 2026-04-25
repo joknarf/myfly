@@ -1,5 +1,5 @@
 FLY_SHELL="$_fly_destshell"
-[ "$FLY_SHELL$POSIXLY_CORRECT" ] || case "$BASH_VERSION$ZSH_VERSION$KSH_VERSION" in
+[ ! "$FLY_SHELL" ] && [ "$0" != /bin/sh ] && case "$BASH_VERSION$ZSH_VERSION$KSH_VERSION" in
     "");;
     "$BASH_VERSION") FLY_SHELL="bash";;
     "$ZSH_VERSION") FLY_SHELL="zsh";;

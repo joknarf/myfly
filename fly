@@ -43,7 +43,7 @@ function _fly_package
 
 function _fly_xpretar
 {
-    printf 'FLY_HOME="%s";' "$_fly_tmpdir"
+    printf 'FLY_HOME="%s"\n' "$_fly_tmpdir"
     cat - <<'EOF'
 umask 077;mkdir -p "$FLY_HOME"
 ! chmod 700 "$FLY_HOME" && echo "Not owner of $FLY_HOME. Abort" >&2 && exit 1
@@ -170,7 +170,7 @@ function _fly
             shift
             [ "$1" ] && ! type "$1" >/dev/null 2>&1 && echo "Cannot find shell $1" >&2 && return 1
             unset _fly_fish
-            _fly_destshell="${1:-$FLY_SHELL}" exec sh "$_fly_lib/.loginshell"
+            _fly_destshell="${1:-$FLY_SHELL}" exec /bin/sh "$_fly_lib/.loginshell"
         ;;
         ssh|to) 
             shift
@@ -207,8 +207,8 @@ case "$1" in
         [ "$_fly_cmd" ] && {
           _fly_cmd="$(base64 -d <<<"$_fly_cmd")" || exit 1
           eval "cmd=($_fly_cmd)"
-          [ "${#cmd[@]}" = 1 ] && ! type "$cmd" >/dev/null 2>&1 && { . <(printf %s "$cmd"); e=$?; } || { eval "${cmd[@]}"; e=$?; }
           [ "$_fly_lock" ] && flock -u 4
+          [ "${#cmd[@]}" = 1 ] && ! type "$cmd" >/dev/null 2>&1 && { . <(printf %s "$cmd"); e=$?; } || { eval "${cmd[@]}"; e=$?; }
           _fly_cleanup "$_fly_share"
           exit "$e"
         }
@@ -216,7 +216,7 @@ case "$1" in
     ;;
     loginshell|install)
         export _fly_destshell FLY_ETC_RC FLY_USER_RC
-        exec sh "$_fly_lib/.loginshell"
+        exec /bin/sh "$_fly_lib/.loginshell"
     ;;
     source|activate)
         shift
