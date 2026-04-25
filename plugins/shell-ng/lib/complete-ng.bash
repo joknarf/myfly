@@ -82,7 +82,7 @@ _complete-ng() {
     IFS=$'\n' COMPREPLY=( $(compgen $opt -- "$word") ) IFS=$' \t\n'
     set +f
   }
-  [ "${#COMPREPLY[@]}" = 1 ] && return
+  [ "${#COMPREPLY[@]}" = 1 ] && COMPREPLY=("${COMPREPLY%%$'\t'*}") && return
   [ "$COMP_SORT" ] || sortcmd=(cat)
   IFS='[;' read -rsd R -p $'\e[6n' _ row col
   printf "\n" >&2
