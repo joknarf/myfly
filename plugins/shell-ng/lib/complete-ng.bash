@@ -1,10 +1,16 @@
 # complete-ng : bash completion nextgen
 # Author : Franck Jouvanceau
 
-declare -F selector >/dev/null 2>&1 || . "$(\cd "${BASH_SOURCE%/*}";pwd)/lib/selector"
+. "$(\cd "${BASH_SOURCE%/*}";pwd)/comphelp"
+declare -F selector >/dev/null 2>&1 || . "$(\cd "${BASH_SOURCE%/*}";pwd)/selector"
 
 #unalias complete 2>/dev/null
 #alias complete=complete-ng
+
+_arrayread() {
+    local IFS=$'\n'
+    set -f; eval "$1"'=($(cat))'; set +f
+}
 
 _complete-ng_navigate() {
   local dir=$1 IFS="$IFS"
@@ -14,7 +20,7 @@ _complete-ng_navigate() {
   [[ $dir = $PWD* ]] && dir="${dir#$PWD}" && dir="${dir#/}"
   [ "$dir" ] && dir="${dir%/}/"
   [[ "$dir" = $HOME/* ]] && dir="~/${dir#$HOME/}"
-  IFS='\n' _items=( "$(compgen -f -- "$dir"|sort -u)" ) IFS=$' \t\n'
+  _items="$(compgen -f -- "$dir"|sort -u)"
   [ "$_items" ] || _items="${dir%/}/"
   _items_ori="$_items"
   return 0
@@ -40,7 +46,7 @@ _complete-ng_key() {
       return 0
     ;;
     '²')
-      _items=$(printf "%s\n" "${_aitems[@]}"|egrep -v '^\.[^/]|/\.')
+      _items=$(printf "%s\n" "${_aitems[@]}"|grep -E -v '^\.[^/]|/\.')
       [ "$_items" ] || return 1
       return 0
     ;;
@@ -63,7 +69,7 @@ _complete-ng_key() {
 }
 
 _complete-ng() {
-  local cmd="${COMP_WORDS[O]}" fn IFS="$IFS" opt="-f" word="" selopt='-o filenames' longword sortcmd=(sort -u) COMP_SORT=1
+  local cmd="${COMP_WORDS[O]}" fn IFS="$IFS" opt="-f" word="" selopt=(-o filenames) longword sortcmd=(sort -u) COMP_SORT=1 row col
   [ "${#COMP_WORDS[@]}" -gt 0 ] && word="${COMP_WORDS[$COMP_CWORD]}"
   fn=$(eval printf '%s' '$'_compfunc_"${cmd//[^a-zA-Z0-9_]/_}")
   [ "$fn" ] || { cmd="${cmd##*/}"; fn=$(eval printf '%s' '$'_compfunc_"${cmd//[^a-zA-Z0-9_]/_}"); }
@@ -73,27 +79,24 @@ _complete-ng() {
         fn=$(eval printf '%s' '$'_compfunc_"${cmd//[^a-zA-Z0-9_]/_}")
     }
   }
-  [ "$fn" ] && { $fn "$@"; } || {
+  [ "$fn" ] && { $fn "$@"; } 
+  (( ${#COMPREPLY[@]} > 0 )) || {
     type "compopt" >/dev/null 2>&1 && compopt -o filenames 2>/dev/null || \
         compgen -f /non-existing-dir/ >/dev/null
     [ "$COMP_CWORD" -le 0 ] && [ "$word" ] && opt="-c"
-    set -f
-    : ${word:=./}
-    IFS=$'\n' COMPREPLY=( $(compgen $opt -- "$word") ) IFS=$' \t\n'
-    set +f
+    : "${word:=./}"
+    _arrayread COMPREPLY <<<"$(compgen $opt -- "$word")"
   }
   [ "${#COMPREPLY[@]}" = 1 ] && COMPREPLY=("${COMPREPLY%%$'\t'*}") && return
   [ "$COMP_SORT" ] || sortcmd=(cat)
   IFS='[;' read -rsd R -p $'\e[6n' _ row col
   printf "\n" >&2
-  [ "${#COMPREPLY[@]}" = 0 ] && {
+  [ ! "$COMPREPLY" ] && {
     [ "$fn" ] && {
-      type "compopt" >/dev/null 2>&1 && compopt -o filenames 2>/dev/null || \                                                                                         compgen -f /non-existing-dir/ >/dev/null
-      set -f
-      IFS=$'\n' COMPREPLY=( $(compgen -f -- "$word") ) IFS=$' \t\n'
-      set +f
+      type "compopt" >/dev/null 2>&1 && compopt -o filenames 2>/dev/null || \                                       compgen -f /non-existing-dir/ >/dev/null
+      _arrayread COMPREPLY <<<"$(compgen -f -- "$word")"
     }
-    [ "${#COMPREPLY[@]}" = 0 ] && {
+    [ ! "$COMPREPLY" ] && {
       printf 'Not found !\r' >&2
       sleep "0.2"
       _tput "el" >&2
@@ -102,13 +105,12 @@ _complete-ng() {
       return 1
     }
   }
-  type "compopt" &>/dev/null && { [[ $(compopt) = *-o\ filename* ]] || selopt=''; }
+  type "compopt" &>/dev/null && { [[ $(compopt) = *-o\ filename* ]] || selopt=(); }
   # longest common prefix
-  longword="$(printf "%s\n" "${COMPREPLY[@]}"|sed -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}')"
+  longword="$(printf "%s\n" "${COMPREPLY[@]}"|sed -e 's/\t.*//' -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}')"
   [ "$longword" ] || longword="$word"
-  set -f
-  COMPREPLY=( "$(SELECTOR_CASEI="$COMPLETE_NG_CASEI" selector -m 10 -k _complete-ng_key $selopt -i "$(printf "%s\n" "${COMPREPLY[@]}"|"${sortcmd[@]}")" -F "$longword")" )
-  set +f
+  comphelp
+  SELECTOR_CASEI="$COMPLETE_NG_CASEI" selector -m 10 -k _complete-ng_key "${selopt[@]}" -i "$(printf "%s\n" "${COMPREPLY[@]}"|"${sortcmd[@]}")" -F "$longword" >/dev/null && COMPREPLY=("$selected") || COMPREPLY=()
   #kill -WINCH $$ # force redraw prompt
   _tput "cuu1" >&2
   _tput "cuf" "$((col-1))" >&2
@@ -152,7 +154,7 @@ complete() {
 
 _complete-ng_init() {
   bind -v |grep -q 'completion-ignore-case on' && COMPLETE_NG_CASEI=true || COMPLETE_NG_CASEI=false
-  if cat <(printf %s) 2>/dev/null && [ "${BASH_VERSION%%.*}" -ge 4 ];then
+  if cat <(:) 2>/dev/null && [ "${BASH_VERSION%%.*}" -ge 4 ];then
     source <(builtin complete |sed -n -e '/-F _complete-ng /d' -e '/-F/p')
   else # process substitution not working (ish/bash 3.2)
     builtin complete |sed -n -e '/-F _complete-ng /d' -e '/-F/p' >/tmp/.complete-ng.tmp.$$
@@ -165,7 +167,7 @@ _complete-ng_init() {
   builtin complete -F _complete-ng ''
 }
 
-: ${COMPLETE_NG_EXCLUDE:=_cdhist_cd}
+: "${COMPLETE_NG_EXCLUDE:=_cdhist_cd}"
 type cdcomplete >/dev/null 2>&1 && cdcomplete
 _complete-ng_init
 

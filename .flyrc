@@ -14,7 +14,7 @@ add_path()
 
 umask 022
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
-add_path ~/.cargo/bin /usr/games -b /usr/gnu/bin /opt/homebrew/sbin /opt/homebrew/bin ~/.local/bin $FLY_HOME/.fly.d/bin
+add_path ~/.cargo/bin /usr/games -b /run/current-system/sw/bin /run/wrappers/bin /usr/gnu/bin /opt/homebrew/sbin /opt/homebrew/bin ~/.local/bin $FLY_HOME/.fly.d/bin
 
 export TERM=xterm-256color
 set -o vi

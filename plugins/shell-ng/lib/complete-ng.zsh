@@ -229,7 +229,6 @@ _complete_ng_selector() {
     local all_lines items longword selected s nbitems
     IFS=$'\n' lines+=($(cat)); IFS=$' \t\n'
     all_lines=$( (( ${#lines[@]} )) && printf %s\\n "${(@Q)lines}")
-    echo "$all_lines" >/tmp/a
     items="$(awk -F"$_COMPLETE_NG_SEP" '{
         sub(q q,"",$1)
         sub(q q"$","",$1)
@@ -237,11 +236,16 @@ _complete_ng_selector() {
         if ($4 !~ /^\t/) $4=""
         print $1$4
     }' q="'" <<<"$all_lines")"
-    _tput cud1 >/dev/tty
-    longword="$(sed -e 's/\t.*//' -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}' <<<"$items")"
-    SELECTOR_CASEI="$COMPLETE_NG_CASEI" selector -m 10 -k _complete-ng_key -i "$items" -o filenames -F "$longword" >/dev/null
-    code="$?"
-    _tput cuu1 >/dev/tty
+    if (( ${#lines[@]} > 1 )) ;then
+        printf $'\n' >/dev/tty
+        longword="$(sed -e 's/\t.*//' -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}' <<<"$items")"
+        SELECTOR_CASEI="$COMPLETE_NG_CASEI" selector -m 10 -k _complete-ng_key -i "$items" -o filenames -F "$longword" >/dev/null
+        code="$?"
+        _tput cuu1 >/dev/tty
+    else
+        selected="${items%%$'\t'*}"
+        code="0"
+    fi
     [ ! "$selected" ] && [ "$longword" != "$PREFIX" ] && code="0" && selected="$longword"
     s="${selected}"
     #[[ "$PREFIX" != ..* ]] && s="${selected#${PREFIX%/*}/}"

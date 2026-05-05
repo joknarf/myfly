@@ -1,3 +1,4 @@
+[ -t 1 ] || return 0
 _path_script="$(\cd "${BASH_SOURCE%/*}";pwd)"
 . $_path_script/lib/nerdp
 . $_path_script/lib/selector

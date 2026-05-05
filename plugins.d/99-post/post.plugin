@@ -1,9 +1,34 @@
 OSVERSION="$ps1_osinfo"
 [ "$BASH" ] && {
+  _fsu()
+  {
+     case "$COMP_CWORD" in
+       1) COMPREPLY=($(compgen -u -- "${COMP_WORDS[$COMP_CWORD]}"));return 0;;
+       2) COMPREPLY=($(compgen -c -- "${COMP_WORDS[$COMP_CWORD]}"));return 0;;
+     esac
+  }
+  complete -F _fsu fsu bsu zsh ksu flyas
+  declare -F _ssh >/dev/null && complete -F _ssh to fto flyto fssh zto bto kto fsshf
   declare -F _completion_loader >/dev/null && {
     _completion_loader ssh
-    complete -F $_compfunc_ssh to fto flyto fssh
+    complete -F $_compfunc_ssh to fto flyto fssh zto bto kto fsshf
   }
+  COMP_KNOWN_HOSTS_WITH_HOSTFILE=''
+#  eval "$(declare -f _known_hosts_real | sed '1s/_known_hosts_real/__orig_known_hosts_real/')"
+
+#  _known_hosts_real() {
+#    __orig_known_hosts_real "$@"
+#
+#    local filtered=()
+#    local h
+#
+#    for h in "${COMPREPLY[@]}"; do
+#        [[ ! "$h" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|:: ]] && filtered+=("$h")
+#    done
+#
+#    COMPREPLY=("${filtered[@]}")
+#  }
+#
 }
 
 [ -f $FLY_HOME/.fly.d/.ish_tty ] && _tput() {

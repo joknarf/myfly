@@ -96,6 +96,7 @@ EOF
 function _fly_pack
 {
     cat - <<EOF
+[ "\$_fly_lock" ] && return
 [ "\$1" = install ] && FLY_HOME="\$HOME" || $(_fly_package_zfx)
 [[ "\$1" = *sh ]] && _fly_destshell="\$1" && shift
 . "\$FLY_HOME/.fly.d/fly" \${1:-loginshell}
@@ -163,14 +164,14 @@ function _fly
     case "$1" in
         list)
             _fly_zsh_glob fix
-            (\cd "$FLY_HOME/.fly.d/plugins" && ls -1 -- */*.plugin.${FLY_SHELL##*/})
+            (\cd "$FLY_HOME/.fly.d/plugins" && ls -1 -- */*.plugin."${FLY_SHELL##*/}")
             _fly_zsh_glob reset
         ;;
         shell)
             shift
             [ "$1" ] && ! type "$1" >/dev/null 2>&1 && echo "Cannot find shell $1" >&2 && return 1
             unset _fly_fish
-            _fly_destshell="${1:-$FLY_SHELL}" exec /bin/sh "$_fly_lib/.loginshell"
+            _fly_destshell="${1:-$FLY_SHELL}" exec /bin/sh -c ". $_fly_lib/.loginshell"
         ;;
         ssh|to) 
             shift
@@ -192,10 +193,14 @@ function _fly
         *) echo "unknown option, use 'fly help'";return 1;;
     esac
 }
+
 function _fly_cleanup
 {
-    [ "$1" ] && flock -n 5 && flock "$1/.fly.lock" rm -rf "$1"/.fly.* && rmdir "$1" "${1%/*}" 2>/dev/null
+    [ -d "$1" ] || return 0
+    [ "$(\cd "$1";pwd -P)" = "$(\cd "$HOME";pwd -P)" ] && return 0
+    flock -n 5 && flock "$1/.fly.lock" rm -rf "$1"/.fly.* && rmdir "$1" "${1%/*}" 2>/dev/null
 }
+
 case "$1" in
     help)  cat "$_fly_lib/usage";;
     login)      
@@ -212,11 +217,11 @@ case "$1" in
           _fly_cleanup "$_fly_share"
           exit "$e"
         }
-        unset _fly_destshell FLY_ETC_RC FLY_USER_RC
+        unset FLY_ETC_RC FLY_USER_RC
     ;;
     loginshell|install)
         export _fly_destshell FLY_ETC_RC FLY_USER_RC
-        exec /bin/sh "$_fly_lib/.loginshell"
+        exec /bin/sh -c ". $_fly_lib/.loginshell"
     ;;
     source|activate)
         shift
@@ -229,7 +234,7 @@ case "$1" in
             (\cd "$FLY_HOME/.fly.d" && git submodule add "$_fly_github/$1" "plugins/${1##*/}" 2>/dev/null)
         } || (\cd "$FLY_HOME/.fly.d/plugins" && git clone "$_fly_github/$1" -q >/dev/null)
         (\cd "$FLY_HOME/.fly.d" && git config -f ".gitmodules submodule.plugins/${1##*/}.shallow" true >/dev/null 2>/dev/null)
-        ln -s ../plugins/${1##*/} $FLY_HOME/.fly.d/plugins.d/50-${1##*/}
+        ln -s "../plugins/${1##*/}" "$FLY_HOME/.fly.d/plugins.d/50-${1##*/}"
         set --
         [ "$_fly_fish" ] || . "$_fly_lib/.source_plugins" "${1#*/}"
         :
@@ -260,7 +265,7 @@ case "$1" in
             [ -d "$plugin" ] && (\cd "$plugin/.." && git pull origin "$(git rev-parse --abbrev-ref HEAD)")
             [ -s "$plugin" ] && submodule=1
         done
-        [ "$submodule" ] && (\cd $FLY_HOME/.fly.d && { 
+        [ "$submodule" ] && (\cd "$FLY_HOME/.fly.d" && {
             git submodule update --remote --merge 2>/dev/null
             git submodule foreach git pull 2>/dev/null
         })
@@ -275,5 +280,5 @@ esac
 
 [ "$_fly_lock" ] && trap - TERM && flock -u 4 && exec 4<&- # unlock teleportation
 [ "$_fly_share" ] && trap "_fly_cleanup '$_fly_share'" EXIT
-unset _fly_share _fly_lock
+unset _fly_share _fly_lock _fly_destshell
 :

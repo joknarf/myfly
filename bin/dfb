@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # dfb - df with colored usage bars
 #
 # df command replacement with colored usage bars/fstype
