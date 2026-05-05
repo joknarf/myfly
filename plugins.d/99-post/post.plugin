@@ -13,7 +13,7 @@ OSVERSION="$ps1_osinfo"
     _completion_loader ssh
     complete -F $_compfunc_ssh to fto flyto fssh zto bto kto fsshf
   }
-  COMP_KNOWN_HOSTS_WITH_HOSTFILE=''
+#  COMP_KNOWN_HOSTS_WITH_HOSTFILE=''
 #  eval "$(declare -f _known_hosts_real | sed '1s/_known_hosts_real/__orig_known_hosts_real/')"
 
 #  _known_hosts_real() {
