@@ -1,0 +1,9 @@
+#compdef _fly flyto=_fly fto=fly_ bto=_fly zto=_fly kto=_fly ftof=_fly fssh=fly_ fsshb=fly_ fsshz=fly_ fsshk=fly_ fsshf=fly_ 
+function _flyto {
+  local -a commands
+  local COMPADD_ARGS=(-Q)
+  commands=(
+    "${(@f)$(_fly_hist "$words[$CURRENT]" ':')}"
+  )
+  _describe -t commands 'flyto command' commands
+}
