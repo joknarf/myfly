@@ -64,19 +64,19 @@ type mapfile >/dev/null 2>&1 && _items2array() { _aitems=(); mapfile -t -O 1 _ai
 
 _menuprompt()
 {
-  typeset filter="${3:-${_aitems[$_nsel]%%$'\t'*}}" nb="$_nsel/$2 "
+  typeset filt="${filter:-${_aitems[$_nsel]%%$'\t'*}}" nb="$_nsel/$1 "
   printf "\r"
-  printf "$disp_form" "$1" "$nb" "$filter"
+  printf "$disp_form" "$prompt" "$nb" "$filt"
   _tput el
   printf "\r"
 }
 
 _showmenu()
 {
-  typeset prompt="$1" filter="$4" item icon fpath comment
-  typeset -i nsel="$2" nbitems="$3" i min max maxiw maxw maxcw lines w size
+  typeset item icon fpath comment
+  typeset -i nsel="$1" nbitems="$2" i min max maxiw maxw maxcw lines w size
 
-  _menuprompt "$prompt" "$nbitems" "$filter"
+  _menuprompt "$nbitems"
   lines=${_maxlines:-$LINES}
   ((lines >= LINES)) && ((lines=LINES-1))
 
@@ -127,7 +127,7 @@ _showmenu()
 
 _select()
 {
-  typeset prompt="$1" newsel="$2" nbitems="$3" filter="$4"
+  typeset prompt="$1" newsel="$2" nbitems="$3"
   typeset -i lines
 
   lines=${_maxlines:-$LINES}
@@ -135,17 +135,17 @@ _select()
   ((_nsel=newsel))
   ((_nsel <1 )) && _nsel=1
   ((_nsel >= nbitems)) && _nsel=$nbitems
-  _showmenu "$prompt" "$_nsel" "$nbitems" "$filter"
+  _showmenu "$_nsel" "$nbitems"
 }
 
 _items_split()
 {
-  typeset filter="$1" item IFS=$' \t\n' gopt=""
+  typeset filt="$1" item IFS=$' \t\n' gopt=""
   [ "$SELECTOR_CASEI" = true ] && gopt="-i"
-  [ "$filter" ] && {
-    _nsel=""
-    [ "$filter" = . ] && filter=""
-    _items="$(\grep -F $gopt -- "$filter" 2>/dev/null <<<"$_items"|uniq)"
+  [ "$filt" ] && {
+    _nsel=''
+    [ "$filt" = . ] && filt=''
+    _items="$(\grep -F $gopt -- "$filt" 2>/dev/null <<<"$_items"|uniq)"
   }
   [ "$_nsel" ] && _items="${_aitems[$_nsel]}"
   _nsel=1
@@ -173,8 +173,9 @@ _readkey()
 
 _domenu()
 {
-  typeset prompt="$1" filter="$2" nbitems o=n 
-  unset _nsel
+  typeset nbitems o=n _force_nsel
+  prompt="$1" filter="$2"
+  _nsel=''
 
   printf "\r"
   _tput el
@@ -192,11 +193,12 @@ _domenu()
   printf "\e[?7l" # nowrap
   : "${LINES:=$(_tput lines)}"
   : "${COLUMNS:=$(_tput cols)}"
-  ((_maxlines > 2)) || unset _maxlines
-  _showmenu "$prompt" "$_nsel" "$nbitems" "$filter"
+  ((_maxlines > 2)) || _maxlines=''
+  _showmenu "$_nsel" "$nbitems"
   while true
   do
     _readkey $o #$key
+    echo "$key" >>/tmp/k1
     [ "$_keyfunc" ] && { # custom key control
       $_keyfunc "$key" # 0: already managed / 1: managed exit / 2: default / 3: skip default
       case "$?" in
@@ -204,8 +206,8 @@ _domenu()
           _items_split "."
           filter=""
           nbitems=${#_aitems[@]}
-          _select "$prompt" "${_force_nsel:-1}" "$nbitems" "$filter"
-          unset _force_nsel
+          _select "$prompt" "${_force_nsel:-1}" "$nbitems"
+          _force_nsel=''
           continue;;
         1) break;;
         3) continue;;
@@ -213,17 +215,17 @@ _domenu()
     }
     case "$key" in
       '[A'|OA) #up
-        filter="";_select "$prompt" "_nsel-1" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "_nsel-1" "$nbitems";;
       '[B'|OB) #down
-        filter="";_select "$prompt" "_nsel+1" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "_nsel+1" "$nbitems";;
       '[H'|'[D'|OD|'[1;5H'|'[1;2D') #home or [shift] arrowleft 
-        filter="";_select "$prompt" "1" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "1" "$nbitems";;
       '[F'|'[C'|OC|'[1;5F'|'[1;2C') #end or [shift] arrowright
-        filter="";_select "$prompt" "nbitems" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "nbitems" "$nbitems";;
       '[6~'|$'\x06'|'[1;2B') #pagedn Ctl-F shift-down
-        filter="";_select "$prompt" "_nsel+lines-1" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "_nsel+lines-1" "$nbitems";;
       '[5~'|$'\x02'|'[1;2A') #pageup Ctl-B shift-up
-        filter="";_select "$prompt" "_nsel-lines+1" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "_nsel-lines+1" "$nbitems";;
       '[19~'|$'\x04'|'[3~') # F8 Ctl-D delete
         unset "_aitems[$_nsel]"
         [ "$ZSH_VERSION" ] && _aitems=("${(@)_aitems[1,$_nsel-1]}" "${(@)_aitems[$_nsel+1,$nbitems]}") ||\
@@ -231,21 +233,21 @@ _domenu()
         nbitems=${#_aitems[@]}
         _tput ed
         [ "$nbitems" = 0 ] && break
-        filter="";_select "$prompt" "$_nsel" "$nbitems" "$filter";;
+        filter='';_select "$prompt" "$_nsel" "$nbitems";;
       $'\x7f'|$'\x08') #backspace
-        filter=${filter%?}
+        filter="${filter%?}"
         _items="$_items_ori"
-        _nsel=""
+        _nsel=''
         _items_split "$filter"
         nbitems=${#_aitems[@]}
-        [ "$_autofilter" = y ] && _showmenu "$prompt" "$_nsel" "$nbitems" "$filter" || \
-          _menuprompt "$prompt" "$nbitems" "$filter"
+        [ "$_autofilter" = y ] && _showmenu "$_nsel" "$nbitems" || \
+          _menuprompt "$nbitems"
         ;;
       $'\xf8') #meta (macos)
         break;;
       [[:graph:]]|" ") #text [a-zA-Z0-9/_?*\(\)\ .-]) 
-        filter="$filter$key"
-        [ "$_autofilter" = y ] && [[ ! "$filter" =~ ^[0-9]+$ ]] && {
+        filter+="$key"
+        [ "$_autofilter" = y ] && {
           _items_split "$filter"
           [ ! "$_items" ] && {
             printf "Not found !"
@@ -253,20 +255,20 @@ _domenu()
             read -rs"$o"1 -t 0.5 key 2>/dev/null
             _items="$_items_ori"
             filter="${filter%?}"
-            _nsel=""
+            _nsel=''
             _items_split "$filter"
           }
           nbitems=${#_aitems[@]}
-          _showmenu "$prompt" "$_nsel" "$nbitems" "$filter"
+          _showmenu "$_nsel" "$nbitems"
         }
-        _menuprompt "$prompt" "$nbitems" "$filter";;
+        _menuprompt "$nbitems";;
       $'\x0c') # Ctl-L => refresh
-        _showmenu "$prompt" "$_nsel" "$nbitems" "$filter";;
+        _showmenu "$_nsel" "$nbitems";;
       $'\x01') # Ctl-A => all
-        unset _maxlines
-        _showmenu "$prompt" "$_nsel" "$nbitems" "$filter";;
+        _maxlines=''
+        _showmenu "$_nsel" "$nbitems";;
       $'\x0d'|''|$'\n'|$'\t') # enter
-        [[ "$filter" =~ ^[0-9]+$ ]] && selected="${_aitems[$filter]}" || selected="${_aitems[$_nsel]}"
+        selected="${_aitems[$_nsel]}"
         break;;
       *) break;
     esac
@@ -281,10 +283,10 @@ function selector
   typeset prompt filter
   typeset bg="\e[48;2;" fg="\e[38;2;" pl=""
   typeset wfg="$fg${SELECTOR_COL_TEXT}m"
-  typeset _items _maxlines _autofilter _keyfunc _sel_option _nsel _items_ori disp_item_sel disp_item disp_form key 
-  prompt="select"
-  selected=""
-  _maxlines=0
+  typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel _items_ori disp_item_sel disp_item disp_form key 
+  prompt='select'
+  selected=''
+  _maxlines=''
   _autofilter=y
   _powerline="$SELECTOR_POWERLINE"
   _keyfunc=""
@@ -334,15 +336,14 @@ function selector
     shift 2
   done
   [ "$_powerline" = "y" ] || pl="►"
+  [ "$_items" ] || return 1
   disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%-*s$fg${SELECTOR_COL_COMSEL}m%s\e[0m"
   disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%-*s$fg${SELECTOR_COL_COMMENT}m%s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
-  _aitems=(); set -A _aitems 2>/dev/null # ksh bug
   typeset _stty_ori=$($_sel_stty -g </dev/tty 2>/dev/null)
   $_sel_stty intr '' </dev/tty 2>/dev/null
   LC_ALL=$__selector_lc _domenu "$prompt" "$filter" >&2
   $_sel_stty "$_stty_ori" </dev/tty 2>/dev/null
-  unset _aitems
   selected="${selected%%$'\t'*}"
   [ "$selected" ] && printf "%s" "$selected" && return 0
   return 1
