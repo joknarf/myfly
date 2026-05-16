@@ -11,3 +11,5 @@ fc -R
 
 #setopt share_history
 setopt incappendhistory
+compdef _ls ls+ ls=ls+
+compdef _df dfb df=dfb

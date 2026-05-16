@@ -32,7 +32,7 @@ function cdpush {
   typeset cdhf=${CDHISTFILE:-~/.cd_history} dir
   case "$1" in 
     --) shift; cdhist "$@"; return $?;;
-    -)  [ "$2" ] && { cdhist "$@"; return $?; };;
+    -)  cdhist "$@"; return $?;;
     +)  shift; cdsub 1 . "$@"; return $?;;
     ++) shift; cdsub 4 . "$@"; return $?;;
   esac
@@ -78,7 +78,7 @@ function cdselect
   [ "$dir" ] && cdpush "$dir"
 }
 
-function _cdbrowse {
+_cdbrowse() {
   typeset dir="$1" depth=${2:-1}
 
   [[ $dir = \~* ]] && dir="$HOME"${dir#\~}
@@ -92,7 +92,7 @@ function _cdbrowse {
 }
 
 # selector custom keys
-function _cd_keys
+_cd_keys()
 {
   typeset k="$1" dir="${_aitems[$_nsel]}"
 
@@ -121,7 +121,6 @@ function _cd_keys
       _cdbrowse "$dir"
       _force_nsel=$_last_nsel
       unset _last_nsel
-      unset _last_filter
       return 0
     ;;
     '[1;2C') # shift right
@@ -304,7 +303,7 @@ function cdsub {
   gr="${gr%/}"
   printf "%s" " Searching directories..." >&2
   cdselect "$CDNBDIRS" "$(find -L "$orig" -xdev -mindepth 1 -maxdepth "$depth" '(' -name '.?*' -prune -o -name '__pycache__' -prune ')' -o -type d -print |\
-    sort -u |grep -- "$gr" 2>/dev/null;_tput cub 25 >&2;_tput el >&2)"
+    sort -u |grep -- "$gr" 2>/dev/null;printf '\e[25D\e[K' >&2)" #_tput breaks old ksh
 }
 
 # use locate to get directories
@@ -483,3 +482,4 @@ alias cd++='cdsub 4 .'
 alias cdl=cdlocate
 _cdbind
 [ "$CDCOMPLETE" = y ] && cdcomplete
+:

@@ -1,6 +1,6 @@
 #echo "joknarf .flyrc" >&2
 
-add_path()
+function add_path
 {
     typeset before=false p
     for p in "$@"

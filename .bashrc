@@ -25,8 +25,11 @@ unset VSCODE_SHELL_INTEGRATION
 [ "$BASH_COMPLETION$BASH_COMPLETION_COMPAT_DIR$BASH_COMPLETION_VERSION_INFO" ] || {
   [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
   [ -f /opt/homebrew/etc/bash_completion ] && . /opt/homebrew/etc/bash_completion
+  [ -f /usr/local/share/bash-completion/bash_completion.sh ] && . /usr/local/share/bash-completion/bash_completion.sh
 }
 
 bind 'set enable-bracketed-paste off'
 unset -f command_not_found_handle
-shopt -s -o history
+#shopt -s -o history
+complete -F _flyto to
+:
