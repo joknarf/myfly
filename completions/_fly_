@@ -1,5 +1,5 @@
 #compdef _fly
-function _flyto {
+function _fly_ {
   local -a commands
   local COMPADD_ARGS=(-Q)
   case "${words[2]}" in
