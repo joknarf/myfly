@@ -101,8 +101,8 @@ function _fly_pkg_login
 {
     cat - <<EOF
 _fly_destshell="$_fly_destshell"
-FLY_ETC_RC="${FLY_ETC_RC:-true}"
-FLY_USER_RC="${FLY_USER_RC:-true}"
+FLY_ETC_RC="$FLY_ETC_RC"
+FLY_USER_RC="$FLY_USER_RC"
 _fly_cmd="$([ "$1" ] && printf '%q ' "$@" |base64 -w 0)"
 . "\$FLY_HOME/.fly.d/.fly.lib/.loginshell"
 EOF
