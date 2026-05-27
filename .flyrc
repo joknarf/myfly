@@ -20,6 +20,7 @@ export TERM=xterm-256color
 set -o vi
 export EDITOR=vi
 type vim >/dev/null 2>&1 && EDITOR=vim
+export VISUAL=$EDITOR FCEDIT=$EDITOR
 export INPUTRC="$FLY_HOME/.fly.d/.inputrc"
 
 HISTCONTROL=ignorespace
