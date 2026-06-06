@@ -1,5 +1,5 @@
 set statusline=
-set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch ignorecase smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile
+set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
 silent! set clipboard=unnamedplus
 " silent! call mkdir(expand('~/.vim/undo'),'p')
 " set undodir=~/.vim/undo//
@@ -22,7 +22,7 @@ let s:H={
 \ 'Special':[215,232,'NONE'],'SpecialChar':[215,232,'NONE'],'Delimiter':[188,232,'NONE'],'Todo':[232,178,'bold'],'Error':[15,203,'bold'],'Underlined':[75,232,'underline'],
 \ 'pythonBuiltin':[75,232,'NONE'],'pythonFunction':[187,232,'NONE'],'pythonDecorator':[187,232,'NONE'],'pythonStatement':[74,232,'NONE'],'pythonConditional':[175,232,'NONE'],'pythonRepeat':[175,232,'NONE'],'pythonException':[175,232,'NONE'],'pythonOperator':[74,232,'NONE'],'pythonString':[174,232,'NONE'],'pythonNumber':[151,232,'NONE'],
 \ 'shShebang':[65,232,'NONE'],'shComment':[65,232,'NONE'],'shKeyword':[74,232,'NONE'],'shConditional':[175,232,'NONE'],'shLoop':[175,232,'NONE'],'shFunction':[221,232,'NONE'],'shDeref':[75,232,'NONE'],'shVariable':[153,232,'NONE'],'shString':[174,232,'NONE'],'shQuote':[174,232,'NONE'],'shCommandSub':[187,232,'NONE'],'shOperator':[188,232,'NONE'],'shFunctionOne':[226,232,'NONE'], 'shStatement':[226,232,'NONE'],'shOption':[187,232,'NONE'],
-\ 'StatusBegin':[107,0,'NONE'],'StatusLineMode':[0,107,'NONE'],'StatusLineSep':[107,24,'NONE'],'StatusLineFile':[15,24,'NONE'],'StatusFileSep':[24,23,'NONE'],'StatusLineGit':[15,23,'NONE'],'StatusGitSep':[23,0,'NONE'],'StatusRightBegin':[23,0,'NONE'],'StatusLineInfo':[15,23,'NONE'],'StatusInfoSep':[24,23,'NONE'],'StatusLineRight':[15,24,'NONE'],'StatusEnd':[24,0,'NONE']
+\ 'SLBegin':[107,0,'NONE'],'SLMode':[0,107,'NONE'],'SLSep':[107,24,'NONE'],'SLFile':[15,24,'NONE'],'SLFileSep':[24,23,'NONE'],'SLGit':[15,23,'NONE'],'SLGitSep':[23,0,'NONE'],'SLRightBegin':[23,0,'NONE'],'SLInfo':[15,23,'NONE'],'SLInfoSep':[24,23,'NONE'],'SLRight':[15,24,'NONE'],'SLEnd':[24,0,'NONE']
 \}
 for [g,v] in items(s:H)|exe 'hi! '.g.' ctermfg='.v[0].' ctermbg='.v[1].' cterm='.v[2]|endfor
 
@@ -46,8 +46,8 @@ function! GitBranch()
   let cmd = 'git -C ' . shellescape(dir) . ' rev-parse --abbrev-ref HEAD 2>/dev/null'
   let branch = system(cmd)
   if v:shell_error
-    hi StatusGitSep    ctermfg=0
-    hi StatusFileSep   ctermbg=0
+    hi SLGitSep    ctermfg=0
+    hi SLFileSep   ctermbg=0
     return ''
   endif
   let branch = substitute(branch, '[\r\n\^@]', '', 'g')
@@ -55,44 +55,44 @@ function! GitBranch()
   return '  '.branch.' '
 endfunction
  
-function! PowerlineStatusline()
-  let mode_hl = 'StatusLineMode'
+function! PowerlineSline()
+  let mode_hl = 'SLMode'
   let mode_str = '  command '
-  hi StatusLineMode  ctermfg=0 ctermbg=107
-  hi StatusLineSep   ctermfg=107
-  hi StatusBegin     ctermfg=107
+  hi SLMode  ctermfg=0 ctermbg=107
+  hi SLSep   ctermfg=107
+  hi SLBegin     ctermfg=107
   if mode() == 'i'
     let mode_str = '  insert '
-    hi StatusLineMode ctermfg=0 ctermbg=137
-    hi StatusLineSep  ctermfg=137
-    hi StatusBegin    ctermfg=137
+    hi SLMode ctermfg=0 ctermbg=137
+    hi SLSep  ctermfg=137
+    hi SLBegin    ctermfg=137
   elseif mode() == 'v'
     let mode_str = '  visual '
-    hi StatusLineMode ctermfg=0 ctermbg=147
-    hi StatusLineSep  ctermfg=147
-    hi StatusBegin    ctermfg=147
+    hi SLMode ctermfg=0 ctermbg=147
+    hi SLSep  ctermfg=147
+    hi SLBegin    ctermfg=147
   elseif mode() == 'R'
     let mode_str = '  replace '
-    hi StatusLineMode ctermfg=0 ctermbg=167
-    hi StatusLineSep  ctermfg=167
-    hi StatusBegin    ctermfg=167
+    hi SLMode ctermfg=0 ctermbg=167
+    hi SLSep  ctermfg=167
+    hi SLBegin    ctermfg=167
   endif
-  let status = '%#StatusBegin#' . g:nerd_right_sep
-  let status .= '%#StatusLineMode#' . mode_str
-  let status .= '%#StatusLineSep#' . g:nerd_left_sep
-  let status .= '%#StatusLineFile#' . ' %t %m%r%h%w'
+  let status = '%#SLBegin#' . g:nerd_right_sep
+  let status .= '%#SLMode#' . mode_str
+  let status .= '%#SLSep#' . g:nerd_left_sep
+  let status .= '%#SLFile#' . ' %t %m%r%h%w'
   let status .= "%{&fileformat!='unix'?'['.&fileformat.']':''}"
   let status .= "%{&endofline?'':'[noeol]'}"
   let status .= "%{&bomb?'[BOM]':''}"
-  let status .= '%#StatusFileSep#' . g:nerd_left_sep
-  let status .= '%#StatusLineGit#' . g:git_branch
-  let status .= '%#StatusGitSep#' . g:nerd_left_sep
+  let status .= '%#SLFileSep#' . g:nerd_left_sep
+  let status .= '%#SLGit#' . g:git_branch
+  let status .= '%#SLGitSep#' . g:nerd_left_sep
   let status .= '%=' " Right-align the rest
-  let status .= '%#StatusRightBegin#' . g:nerd_right_sep
-  let status .= '%#StatusLineInfo#' . ' L%l:C%c '
-  let status .= '%#StatusInfoSep#' . g:nerd_right_sep
-  let status .= '%#StatusLineRight#' . ' %p%% '
-  let status .= '%#StatusEnd#' . g:nerd_left_sep
+  let status .= '%#SLRightBegin#' . g:nerd_right_sep
+  let status .= '%#SLInfo#' . ' L%l:C%c '
+  let status .= '%#SLInfoSep#' . g:nerd_right_sep
+  let status .= '%#SLRight#' . ' %p%% '
+  let status .= '%#SLEnd#' . g:nerd_left_sep
   return status
 endfunction
 
@@ -101,4 +101,4 @@ let g:powerline_left_sep = ''
 let g:powerline_right_sep = ''
 let g:nerd_left_sep = ''
 let g:nerd_right_sep = ''
-set statusline=%!PowerlineStatusline()
+set statusline=%!PowerlineSline()
