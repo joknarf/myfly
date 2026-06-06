@@ -1,5 +1,5 @@
 set statusline=
-set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
+set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start completeopt=menuone,noinsert,noselect paste "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
 silent! set clipboard=unnamedplus
 " silent! call mkdir(expand('~/.vim/undo'),'p')
 " set undodir=~/.vim/undo//
@@ -102,3 +102,4 @@ let g:powerline_right_sep = ''
 let g:nerd_left_sep = ''
 let g:nerd_right_sep = ''
 set statusline=%!PowerlineSline()
+
