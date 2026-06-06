@@ -1,6 +1,7 @@
 silent! set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start paste completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
 set statusline=
 silent! set clipboard=unnamedplus
+nnoremap <M-n> :set nu!<CR>
 " silent! call mkdir(expand('~/.vim/undo'),'p')
 " set undodir=~/.vim/undo//
 let python_highlight_all=1
