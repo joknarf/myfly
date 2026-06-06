@@ -16,6 +16,36 @@ if exists('syntax_on')|syntax reset|endif
 let g:colors_name='vscode-dark-modern-256'
 hi! Normal ctermfg=188 ctermbg=232
 hi! NormalNC ctermfg=188 ctermbg=233
+
+function! PySyn()
+  for [g,p,l] in [
+        \ ['pythonAssignment','^\s*\h\w*\s*=','Identifier'],
+        \ ['pythonFuncName','\<def\s\+\zs\h\w*\ze\s*(','Function'],
+        \ ['pythonClassName','\<class\s\+\zs\h\w*\ze\%(\s*(\|\s*:\)','Type'],
+        \ ['pythonDecorator','@\h\w*\%(\.\h\w*\)*','PreProc'],
+        \ ['pythonConstant','\<[A-Z][A-Z0-9_]*\>','Constant']]
+"        \ ['pythonCall','\%(\.\|^\|\W\)\zs\h\w*\ze\s*(','Function']]
+    exe "syntax match ".g." '".p."'"
+    exe "hi link ".g." ".l
+  endfor
+  syntax keyword pythonSelf self cls
+  hi link pythonSelf Special
+endfunction
+
+augroup py_assign
+  au!
+  au Syntax python call PySyn()
+augroup END
+
+autocmd FileType python call s:PySyntax()
+
+function! s:PySyntax()
+  syntax match pythonMethodCall '\.\zs\h\w*\ze\s*('
+  hi def link pythonMethodCall pythonFunction
+  syntax match pythonFuncCall '\v\h\w*\ze\s*\('
+  hi def link pythonFuncCall pythonFunction
+endfunction
+
 let s:H={
 \ 'CursorLine':['NONE',235],'LineNr':[102,233],'CursorLineNr':[187,235,'bold'],'SignColumn':[188,233],'ColorColumn':['NONE',236],
 \ 'VertSplit':[238],'WinSeparator':[238],'Visual':['NONE',24],
@@ -24,7 +54,7 @@ let s:H={
 \ 'Operator':[188],'Keyword':[74],'Exception':[175],'PreProc':[175],'Include':[175],'Define':[75],
 \ 'Macro':[75],'PreCondit':[175],'Type':[79],'StorageClass':[74],'Structure':[79],'Typedef':[79],
 \ 'Special':[215],'SpecialChar':[215],'Delimiter':[188],'Todo':[232,178,'bold'],'Error':[15,203,'bold'],'Underlined':[75,232,'underline'],
-\ 'pythonBuiltin':[75],'pythonFunction':[187],'pythonDecorator':[187],'pythonStatement':[74],'pythonConditional':[175],'pythonRepeat':[175],'pythonException':[175],'pythonOperator':[74],'pythonString':[174],'pythonNumber':[151],
+\ 'pythonBuiltin':[75],'pythonFunction':[187],'pythonAttribute':[187],'pythonDecorator':[187],'pythonStatement':[74],'pythonConditional':[175],'pythonRepeat':[175],'pythonException':[175],'pythonOperator':[74],'pythonString':[174],'pythonNumber':[151],
 \ 'shShebang':[65],'shComment':[65],'shKeyword':[74],'shConditional':[175],'shLoop':[175],'shFunction':[221],'shDeref':[75],'shVariable':[153],'shString':[174],'shQuote':[174],'shCommandSub':[187],'shOperator':[188],'shFunctionOne':[226],'shFunctionTwo':[187],'shSet':[74],'shStatement':[74],'shOption':[187],'shSetList':[153],'shAlias':[153],
 \ 'SLBegin':[107],'SLMode':[0,107],'SLSep':[107,24],'SLFile':[15,24],'SLFileSep':[24,23],'SLGit':[15,23],'SLGitSep':[23],'SLRightBegin':[23],'SLInfo':[15,23],'SLInfoSep':[24,23],'SLRight':[15,24],'SLEnd':[24]
 \}
