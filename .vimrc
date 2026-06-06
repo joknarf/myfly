@@ -1,4 +1,5 @@
-silent! set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start paste completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
+silent! set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start viminfo^=% paste completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
+au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 set statusline=
 silent! set clipboard=unnamedplus
 nnoremap <M-n> :set nu!<CR>
@@ -16,18 +17,20 @@ let g:colors_name='vscode-dark-modern-256'
 hi! Normal ctermfg=188 ctermbg=232
 hi! NormalNC ctermfg=188 ctermbg=233
 let s:H={
-\ 'CursorLine':['NONE',235,'NONE'],'LineNr':[102,233,'NONE'],'CursorLineNr':[187,235,'bold'],'SignColumn':[188,233,'NONE'],'ColorColumn':['NONE',236,'NONE'],
-\ 'VertSplit':[238,232,'NONE'],'WinSeparator':[238,232,'NONE'],'Visual':['NONE',24,'NONE'],
-\ 'Search':[232,178,'NONE'],'IncSearch':[232,215,'bold'],'MatchParen':[232,75,'bold'],'Pmenu':[188,236,'NONE'],'PmenuSel':[15,32,'bold'],
-\ 'Comment':[65,0,'NONE'],'Constant':[75,232,'NONE'],'String':[174,232,'NONE'],'Character':[174,232,'NONE'],'Number':[151,232,'NONE'],'Boolean':[74,232,'NONE'],'Float':[151,232,'NONE'],'Identifier':[153,232,'NONE'],'Function':[33,232,'NONE'],'Statement':[74,232,'NONE'],'Conditional':[175,232,'NONE'],'Repeat':[175,232,'NONE'],'Label':[175,232,'NONE'],
-\ 'Operator':[188,232,'NONE'],'Keyword':[74,232,'NONE'],'Exception':[175,232,'NONE'],'PreProc':[175,232,'NONE'],'Include':[175,232,'NONE'],'Define':[75,232,'NONE'],
-\ 'Macro':[75,232,'NONE'],'PreCondit':[175,232,'NONE'],'Type':[79,232,'NONE'],'StorageClass':[74,232,'NONE'],'Structure':[79,232,'NONE'],'Typedef':[79,232,'NONE'],
-\ 'Special':[215,232,'NONE'],'SpecialChar':[215,232,'NONE'],'Delimiter':[188,232,'NONE'],'Todo':[232,178,'bold'],'Error':[15,203,'bold'],'Underlined':[75,232,'underline'],
-\ 'pythonBuiltin':[75,232,'NONE'],'pythonFunction':[187,232,'NONE'],'pythonDecorator':[187,232,'NONE'],'pythonStatement':[74,232,'NONE'],'pythonConditional':[175,232,'NONE'],'pythonRepeat':[175,232,'NONE'],'pythonException':[175,232,'NONE'],'pythonOperator':[74,232,'NONE'],'pythonString':[174,232,'NONE'],'pythonNumber':[151,232,'NONE'],
-\ 'shShebang':[65,232,'NONE'],'shComment':[65,232,'NONE'],'shKeyword':[74,232,'NONE'],'shConditional':[175,232,'NONE'],'shLoop':[175,232,'NONE'],'shFunction':[221,232,'NONE'],'shDeref':[75,232,'NONE'],'shVariable':[153,232,'NONE'],'shString':[174,232,'NONE'],'shQuote':[174,232,'NONE'],'shCommandSub':[187,232,'NONE'],'shOperator':[188,232,'NONE'],'shFunctionOne':[226,232,'NONE'],'shFunctionTwo':[187,232,'NONE'],'shSet':[74,232,'NONE'],'shStatement':[74,232,'NONE'],'shOption':[187,232,'NONE'],'shSetList':[153,232,'NONE'],'shAlias':[153,232,'NONE'],
-\ 'SLBegin':[107,0,'NONE'],'SLMode':[0,107,'NONE'],'SLSep':[107,24,'NONE'],'SLFile':[15,24,'NONE'],'SLFileSep':[24,23,'NONE'],'SLGit':[15,23,'NONE'],'SLGitSep':[23,0,'NONE'],'SLRightBegin':[23,0,'NONE'],'SLInfo':[15,23,'NONE'],'SLInfoSep':[24,23,'NONE'],'SLRight':[15,24,'NONE'],'SLEnd':[24,0,'NONE']
+\ 'CursorLine':['NONE',235],'LineNr':[102,233],'CursorLineNr':[187,235,'bold'],'SignColumn':[188,233],'ColorColumn':['NONE',236],
+\ 'VertSplit':[238],'WinSeparator':[238],'Visual':['NONE',24],
+\ 'Search':[232,178],'IncSearch':[232,215,'bold'],'MatchParen':[232,75,'bold'],'Pmenu':[188,236],'PmenuSel':[15,32,'bold'],
+\ 'Comment':[65],'Constant':[75],'String':[174],'Character':[174],'Number':[151],'Boolean':[74],'Float':[151],'Identifier':[153],'Function':[33],'Statement':[74],'Conditional':[175],'Repeat':[175],'Label':[175],
+\ 'Operator':[188],'Keyword':[74],'Exception':[175],'PreProc':[175],'Include':[175],'Define':[75],
+\ 'Macro':[75],'PreCondit':[175],'Type':[79],'StorageClass':[74],'Structure':[79],'Typedef':[79],
+\ 'Special':[215],'SpecialChar':[215],'Delimiter':[188],'Todo':[232,178,'bold'],'Error':[15,203,'bold'],'Underlined':[75,232,'underline'],
+\ 'pythonBuiltin':[75],'pythonFunction':[187],'pythonDecorator':[187],'pythonStatement':[74],'pythonConditional':[175],'pythonRepeat':[175],'pythonException':[175],'pythonOperator':[74],'pythonString':[174],'pythonNumber':[151],
+\ 'shShebang':[65],'shComment':[65],'shKeyword':[74],'shConditional':[175],'shLoop':[175],'shFunction':[221],'shDeref':[75],'shVariable':[153],'shString':[174],'shQuote':[174],'shCommandSub':[187],'shOperator':[188],'shFunctionOne':[226],'shFunctionTwo':[187],'shSet':[74],'shStatement':[74],'shOption':[187],'shSetList':[153],'shAlias':[153],
+\ 'SLBegin':[107],'SLMode':[0,107],'SLSep':[107,24],'SLFile':[15,24],'SLFileSep':[24,23],'SLGit':[15,23],'SLGitSep':[23],'SLRightBegin':[23],'SLInfo':[15,23],'SLInfoSep':[24,23],'SLRight':[15,24],'SLEnd':[24]
 \}
-for [g,v] in items(s:H)|exe 'hi! '.g.' ctermfg='.v[0].' ctermbg='.v[1].' cterm='.v[2]|endfor
+for [g,v] in items(s:H)
+  exe 'hi! '.g.' ctermfg='.v[0].' ctermbg='.(len(v)>1 && v[1] != '' ? v[1] : 232).' cterm='.(len(v)>2 && v[2] != '' ? v[2] : 'NONE')
+endfor
 
 augroup myvimrc
   au!
