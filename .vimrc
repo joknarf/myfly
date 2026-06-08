@@ -17,9 +17,10 @@ let g:colors_name='vscode-dark-modern-256'
 hi! Normal ctermfg=188 ctermbg=232
 hi! NormalNC ctermfg=188 ctermbg=233
 
+"        \ ['awkAssignment','\s*\h\w*\ze\[*\s*[+-]*=','Identifier'],
 function! PySyn()
   for [g,p,l] in [
-        \ ['pythonAssignment','^\s*\h\w*\s*=','Identifier'],
+        \ ['pythonAssignment','\s*\zs\h\w*\ze\s*\%(\[\|=\|!\|+\|-\|<\|>\|[)]\|,\|\.\)','Identifier'],
         \ ['pythonFuncName','\<def\s\+\zs\h\w*\ze\s*(','Function'],
         \ ['pythonClassName','\<class\s\+\zs\h\w*\ze\%(\s*(\|\s*:\)','Type'],
         \ ['pythonDecorator','@\h\w*\%(\.\h\w*\)*','PreProc'],
@@ -35,9 +36,11 @@ endfunction
 augroup py_assign
   au!
   au Syntax python call PySyn()
+  au Syntax awk call PySyn()
 augroup END
 
 autocmd FileType python call s:PySyntax()
+autocmd FileType awk call s:PySyntax()
 
 function! s:PySyntax()
   syntax match pythonMethodCall '\.\zs\h\w*\ze\s*('
