@@ -18,7 +18,7 @@ hi! Normal ctermfg=188 ctermbg=232
 hi! NormalNC ctermfg=188 ctermbg=233
 function! MySyn()
   for [g,p,l] in [
-        \ ['myAssignment','\s*\zs\h\w*\ze\s*\%([[=!+<>)},;.-]\)','Identifier'],
+        \ ['myAssignment','\s*\zs\h\w*\ze\s*\%([[=!+<>)},;. -]\|$\)','Identifier'],
         \ ['myFuncName','\<def\s\+\zs\h\w*\ze\s*(','Function'],
         \ ['myClassName','\<class\s\+\zs\h\w*\ze\%(\s*(\|\s*:\)','Type'],
         \ ['myDecorator','@\h\w*\%(\.\h\w*\)*','PreProc'],
@@ -49,7 +49,7 @@ let s:H={
 \ 'Macro':[75],'PreCondit':[175],'Type':[79],'StorageClass':[74],'Structure':[79],'Typedef':[79],
 \ 'Special':[215],'SpecialChar':[215],'Delimiter':[188],'Todo':[232,178,'bold'],'Error':[15,203,'bold'],'Underlined':[75,232,'underline'],
 \ 'pythonBuiltin':[75],'pythonFunction':[187],'pythonAttribute':[187],'pythonDecorator':[187],'pythonStatement':[74],'pythonConditional':[175],'pythonRepeat':[175],'pythonException':[175],'pythonOperator':[74],'pythonString':[174],'pythonNumber':[151],
-\ 'shShebang':[65],'shComment':[65],'shKeyword':[74],'shConditional':[175],'shLoop':[175],'shFunction':[221],'shDeref':[75],'shVariable':[153],'shString':[174],'shQuote':[174],'shCommandSub':[187],'shOperator':[188],'shFunctionOne':[226],'shFunctionTwo':[187],'shSet':[74],'shStatement':[74],'shOption':[187],'shSetList':[153],'shAlias':[153],'shFunctionKey':[74],
+\ 'shShebang':[65],'shComment':[65],'shKeyword':[74],'shConditional':[175],'shLoop':[175],'shFunction':[221],'shDeref':[153],'shVariable':[153],'shString':[174],'shQuote':[174],'shCommandSub':[187],'shOperator':[188],'shFunctionOne':[226],'shFunctionTwo':[187],'shSet':[74],'shStatement':[74],'shOption':[187],'shSetList':[153],'shAlias':[153],'shFunctionKey':[74],
 \ 'SLBegin':[107],'SLMode':[0,107],'SLSep':[107,24],'SLFile':[15,24],'SLFileSep':[24,23],'SLGit':[15,23],'SLGitSep':[23],'SLRightBegin':[23],'SLInfo':[15,23],'SLInfoSep':[24,23],'SLRight':[15,24],'SLEnd':[24]
 \}
 for [g,v] in items(s:H)
