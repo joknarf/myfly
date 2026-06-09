@@ -16,10 +16,9 @@ if exists('syntax_on')|syntax reset|endif
 let g:colors_name='vscode-dark-modern-256'
 hi! Normal ctermfg=188 ctermbg=232
 hi! NormalNC ctermfg=188 ctermbg=233
-
 function! MySyn()
   for [g,p,l] in [
-        \ ['myAssignment','\s*\zs\h\w*\ze\s*\%([[=!+<>),.-]\)','Identifier'],
+        \ ['myAssignment','\s*\zs\h\w*\ze\s*\%([[=!+<>)},;.-]\)','Identifier'],
         \ ['myFuncName','\<def\s\+\zs\h\w*\ze\s*(','Function'],
         \ ['myClassName','\<class\s\+\zs\h\w*\ze\%(\s*(\|\s*:\)','Type'],
         \ ['myDecorator','@\h\w*\%(\.\h\w*\)*','PreProc'],
@@ -38,7 +37,7 @@ augroup myvimrc
   au BufRead,BufNewFile * if &ft==''||(empty(expand('%:e')) && index(['vim','passwd','group','messages'], &ft) <0) |set ft=sh|endif
   au FileType python setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4 colorcolumn=130
   au FileType sh setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
-  au Syntax python,awk,javascript call MySyn()
+  au Syntax python,awk,javascript,rust,go,ruby call MySyn()
 augroup END
 
 let s:H={
