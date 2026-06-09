@@ -17,15 +17,15 @@ let g:colors_name='vscode-dark-modern-256'
 hi! Normal ctermfg=188 ctermbg=232
 hi! NormalNC ctermfg=188 ctermbg=233
 
-"        \ ['awkAssignment','\s*\h\w*\ze\[*\s*[+-]*=','Identifier'],
-function! PySyn()
+function! MySyn()
   for [g,p,l] in [
-        \ ['pythonAssignment','\s*\zs\h\w*\ze\s*\%(\[\|=\|!\|+\|-\|<\|>\|[)]\|,\|\.\)','Identifier'],
-        \ ['pythonFuncName','\<def\s\+\zs\h\w*\ze\s*(','Function'],
-        \ ['pythonClassName','\<class\s\+\zs\h\w*\ze\%(\s*(\|\s*:\)','Type'],
-        \ ['pythonDecorator','@\h\w*\%(\.\h\w*\)*','PreProc'],
-        \ ['pythonConstant','\<[A-Z][A-Z0-9_]*\>','Constant']]
-"        \ ['pythonCall','\%(\.\|^\|\W\)\zs\h\w*\ze\s*(','Function']]
+        \ ['myAssignment','\s*\zs\h\w*\ze\s*\%([[=!+<>),.-]\)','Identifier'],
+        \ ['myFuncName','\<def\s\+\zs\h\w*\ze\s*(','Function'],
+        \ ['myClassName','\<class\s\+\zs\h\w*\ze\%(\s*(\|\s*:\)','Type'],
+        \ ['myDecorator','@\h\w*\%(\.\h\w*\)*','PreProc'],
+        \ ['myConstant','\<[A-Z][A-Z0-9_]*\>','Constant'],
+        \ ['myMethodCall','\.\zs\h\w*\ze\s*(','Function'],
+        \ ['myFuncCall','\v\h\w*\ze\s*\(','Function']]
     exe "syntax match ".g." '".p."'"
     exe "hi link ".g." ".l
   endfor
@@ -35,19 +35,9 @@ endfunction
 
 augroup py_assign
   au!
-  au Syntax python call PySyn()
-  au Syntax awk call PySyn()
+  au Syntax python call MySyn()
+  au Syntax awk call MySyn()
 augroup END
-
-autocmd FileType python call s:PySyntax()
-autocmd FileType awk call s:PySyntax()
-
-function! s:PySyntax()
-  syntax match pythonMethodCall '\.\zs\h\w*\ze\s*('
-  hi def link pythonMethodCall Function
-  syntax match pythonFuncCall '\v\h\w*\ze\s*\('
-  hi def link pythonFuncCall Function
-endfunction
 
 let s:H={
 \ 'CursorLine':['NONE',235],'LineNr':[102,233],'CursorLineNr':[187,235,'bold'],'SignColumn':[188,233],'ColorColumn':['NONE',236],
