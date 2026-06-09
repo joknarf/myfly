@@ -35,12 +35,10 @@ endfunction
 
 augroup myvimrc
   au!
-  au BufRead,BufNewFile * if empty(expand('%:e'))&& index(['vim','passwd','group','dosini','messages'], &syntax) <0 |set ft=sh|endif
-  au BufRead,BufNewFile * if &ft==''|set ft=sh|endif
+  au BufRead,BufNewFile * if &ft==''||(empty(expand('%:e')) && index(['vim','passwd','group','messages'], &ft) <0) |set ft=sh|endif
   au FileType python setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4 colorcolumn=130
   au FileType sh setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
-  au Syntax python call MySyn()
-  au Syntax awk call MySyn()
+  au Syntax python,awk,javascript call MySyn()
 augroup END
 
 let s:H={
