@@ -1,4 +1,4 @@
-silent! set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu showcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start viminfo^=% paste completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
+silent! set nocompatible encoding=utf-8 t_Co=256 bg=dark hidden wildmenu noshowcmd ruler laststatus=2 number cursorline wrap incsearch hlsearch smartcase scrolloff=5 sidescrolloff=5 backspace=indent,eol,start viminfo^=% paste completeopt=menuone,noinsert,noselect "relativenumber shortmess+=c updatetime=300 signcolumn=yes undofile noswapfile ignorecase
 au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g`\"" | endif
 set statusline=
 " silent! set clipboard=unnamedplus
@@ -84,22 +84,22 @@ function! PowerlineSline()
   let mode_str = '  command '
   hi SLMode  ctermfg=0 ctermbg=107
   hi SLSep   ctermfg=107
-  hi SLBegin     ctermfg=107
+  hi SLBegin ctermfg=107
   if mode() == 'i'
     let mode_str = '  insert '
-    hi SLMode ctermfg=0 ctermbg=137
-    hi SLSep  ctermfg=137
-    hi SLBegin    ctermfg=137
+    hi SLMode  ctermfg=0 ctermbg=137
+    hi SLSep   ctermfg=137
+    hi SLBegin ctermfg=137
   elseif mode() == 'v'
     let mode_str = '  visual '
-    hi SLMode ctermfg=0 ctermbg=147
-    hi SLSep  ctermfg=147
-    hi SLBegin    ctermfg=147
+    hi SLMode  ctermfg=0 ctermbg=147
+    hi SLSep   ctermfg=147
+    hi SLBegin ctermfg=147
   elseif mode() == 'R'
     let mode_str = '  replace '
-    hi SLMode ctermfg=0 ctermbg=167
-    hi SLSep  ctermfg=167
-    hi SLBegin    ctermfg=167
+    hi SLMode  ctermfg=0 ctermbg=167
+    hi SLSep   ctermfg=167
+    hi SLBegin ctermfg=167
   endif
   let status = '%#SLBegin#' . g:nerd_right_sep
   let status .= '%#SLMode#' . mode_str
