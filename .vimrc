@@ -33,8 +33,12 @@ function! MySyn()
   hi link pythonSelf Special
 endfunction
 
-augroup py_assign
+augroup myvimrc
   au!
+  au BufRead,BufNewFile * if empty(expand('%:e'))&& index(['vim','passwd','group','dosini','messages'], &syntax) <0 |set ft=sh|endif
+  au BufRead,BufNewFile * if &ft==''|set ft=sh|endif
+  au FileType python setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4 colorcolumn=130
+  au FileType sh setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
   au Syntax python call MySyn()
   au Syntax awk call MySyn()
 augroup END
@@ -55,13 +59,6 @@ for [g,v] in items(s:H)
   exe 'hi! '.g.' ctermfg='.v[0].' ctermbg='.(len(v)>1 && v[1] != '' ? v[1] : 232).' cterm='.(len(v)>2 && v[2] != '' ? v[2] : 'NONE')
 endfor
 
-augroup myvimrc
-  au!
-  au BufRead,BufNewFile * if empty(expand('%:e'))&& &syntax!='vim'|set ft=sh|endif
-  au BufRead,BufNewFile * if &ft==''|set ft=sh|endif
-  au FileType python setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4 colorcolumn=88
-  au FileType sh setlocal expandtab tabstop=2 shiftwidth=2 softtabstop=2
-augroup END
 
 function! FileDir()
   if expand('%') ==# ''
