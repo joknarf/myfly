@@ -8,7 +8,8 @@
 # (nerd fonts recommended for symbols)
 # usage: dfb [-a] [df options]
 #
-type gdf >/dev/null 2>&1 && df=gdf || df=df
+read df <<<"$(type -p gnudf gdf df)"
+read box <<<"$(readlink -f $df)"
 [ -t 1 ] || exec $df "$@"
 shopt -s extglob
 [[ $1 = @(--help|--version) ]] && exec $df "$@"
@@ -19,7 +20,7 @@ shopt -s extglob
 
 dfbar() {
   typeset dfopt=( -T -x fuse.snapfuse -x overlay -x rootfs -x devtmpfs -x efivarfs ) all df="${df:-df}"
-  [[ " $*" = *\ -*a ]] && dfopt=( -T ) && all=1;
+  [[ " $*" = *\ -*a || $box = *box* ]] && dfopt=( -T ) && all=1;
   set -o pipefail
   LANG=C $df -P "${dfopt[@]}" "$@" | awk -v sym1="$DFBAR_BEGIN" -v sym2="$DFBAR_END" -v all=$all -v col="$DFBAR_COLORS" '
   BEGIN {
@@ -77,8 +78,8 @@ dfbar() {
   END {
     if (nlines==0) exit
     # print header
-    printf "%s%-*s %-*s %*s %*s %*s %-*s   %-*s%s\n", \
-      fg_white gray_bg, w[1],h[1], w[2],h[2], w[3],h[3], w[4],h[4], w[5],h[5], w[6],h[6], w[7],h[7], reset
+    printf "%s%-"w[1]"s %-"w[2]"s %"w[3]"s %"w[4]"s %"w[5]"s %-"w[6]"s   %-"w[7]"s%s\n", \
+      fg_white gray_bg, h[1], h[2], h[3], h[4], h[5], h[6], h[7], reset
 
     for(i=1;i<=nlines;i++){
       dev=lines[i,1]; type=lines[i,2]; size=lines[i,3]; used=lines[i,4]; avail=lines[i,5]; pct=lines[i,6]; mnt=lines[i,7]
@@ -114,8 +115,8 @@ dfbar() {
         }
       }
       bar=bar reset fg[bg] sym2 reset
-      printf "%s%-*s %s%-*s%s %*s %*s %*s %s%s %-*s%s\n", \
-        fg_white lbg[i%2], w[1],dev, typc[type], w[2],type, fg_white, w[3],size, w[4],used, w[5],avail, bar, lbg[i%2] fg_white, w[7],mnt, reset
+      printf "%s%-"w[1]"s %s%-"w[2]"s%s %"w[3]"s %"w[4]"s %"w[5]"s %s%s %-"w[7]"s%s\n", \
+        fg_white lbg[i%2], dev, typc[type], type, fg_white, size, used, avail, bar, lbg[i%2] fg_white, mnt, reset
     }
     printf esc "?7h" # enable line wrapping
   }'

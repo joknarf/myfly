@@ -5,7 +5,7 @@ function print_tree() {
   if (total_line) print total_line
   total_line=""
   for (i=1;i<=n;i++) {
-    if (flag_i) printf("%s%*s ", c_inum, max_inums, inums_a[i])
+    if (flag_i) printf("%s%"max_inums"s ", c_inum, inums_a[i])
     col=colors[cols_a[i]]
     lcol=colors["l" cols_a[i]]
     if (flag_l) {
@@ -21,9 +21,9 @@ function print_tree() {
       if (group_a[i] in user_groups) { c_perms_group=lcol; c_group=lc_user }
       else { c_perms_group=col; c_group=c_user }
       printf("%s ", lcol perms_type RESET c_perms_owner perms_owner c_perms_group perms_group lcol perms_other perms_acl)
-      if (!(flag_g)) printf("%s%-*s ", c_owner, max_owner, owner_a[i])
-      if (!(flag_G)) printf("%s%-*s ", c_group, max_group, group_a[i])
-      printf(" %s%*s %s %s\n", c_size, max_size, size_a[i], c_date date_a[i], name_a[i])
+      if (!(flag_g)) printf("%s%-"max_owner"s ", c_owner, owner_a[i])
+      if (!(flag_G)) printf("%s%-"max_group"s ", c_group, group_a[i])
+      printf(" %s%"max_size"s %s %s\n", c_size, size_a[i], c_date date_a[i], name_a[i])
     } else printf("%s\n", name_a[i])
   }
 }

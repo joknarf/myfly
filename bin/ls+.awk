@@ -1,6 +1,13 @@
 # ls+.awk
 # Author: joknarf
 
+function len(s,  n, t) {
+  n=0
+  # utf-8 ~range
+  if (bbox) n=split(s,t,/[¿-Ј]/)-1
+  return length(s)-n
+}
+
 function print_multic() {
 # multicolumn output
   if (!n) return
@@ -38,7 +45,7 @@ function print_multic() {
     for (c=0;c<C;c++) {
       i=c*R+r
       if (i>n) break
-      printf("%s%*s", name_a[i], colw[c]-vlen_a[i]+pad, "")
+      printf("%s%"colw[c]-vlen_a[i]+pad"s", name_a[i], "")
     }
     printf("\n")
   }
@@ -47,8 +54,8 @@ function print_long() {
   if (total_line) print total_line
   total_line=""
   for (i=1;i<=n;i++) {
-    if (flag_i) printf("%s%*s ", c_inum, max_inums, inums_a[i])
-    if (flag_s) printf("%s%*s ", c_size, max_size, sizeb_a[i])
+    if (flag_i) printf("%s%"max_inums"s ", c_inum, inums_a[i])
+    if (flag_s) printf("%s%"max_size"s ", c_size, sizeb_a[i])
     col=colors[cols_a[i]]
     lcol=colors["l" cols_a[i]]
     perms=perms_a[i]
@@ -63,10 +70,10 @@ function print_long() {
     if (group_a[i] in user_groups) { c_perms_group=lcol; c_group=lc_user }
     else { c_perms_group=col; c_group=c_user }
     printf("%s ", lcol perms_type RESET c_perms_owner perms_owner c_perms_group perms_group lcol perms_other perms_acl)
-    if (!(flag_g)) printf("%s%-*s ", c_owner, max_owner, owner_a[i])
-    if (!(flag_G)) printf("%s%-*s ", c_group, max_group, group_a[i])
-    if (flag_Z) printf(" %s%-*s", c_context, max_context, context_a[i])
-    printf(" %s%*s %s %s\n", c_size, max_size, size_a[i], c_date date_a[i], name_a[i])
+    if (!(flag_g)) printf("%s%-"max_owner"s ", c_owner, owner_a[i])
+    if (!(flag_G)) printf("%s%-"max_group"s ", c_group, group_a[i])
+    if (flag_Z) printf(" %s%-"max_ctx"s", c_ctx, ctx_a[i])
+    printf(" %s%"max_size"s %s %s\n", c_size, size_a[i], c_date date_a[i], name_a[i])
   }
 }
 function print_ls() {
@@ -91,11 +98,12 @@ $0=="" { print_ls(); print ""; next }
   if (flag_i) inum=$(c++)
   if (flag_s) sizeb=$(c++)
   perms=$(c++); links=$(c++); owner=$(c++); group=$(c++);
-  if (flag_Z) context=$(c++)
+  if (flag_Z) ctx=$(c++)
   type=substr(perms,1,1)
   if (type=="c" || type=="b") size=$(c++)" "$(c++)
   else size=$(c++)
   date=$(c++) " " $c
+  sub(":..([.].*|$)","",date)
   file_i=substr($0, index($0, "\""))
   indicator=substr(file_i,length(file_i))
   if (indicator!="\"") file_i=substr(file_i, 1, length(file_i)-1)
@@ -129,27 +137,28 @@ $0=="" { print_ls(); print ""; next }
     if (ext in I_EXT) icon=I_EXT[ext]
   }
   ++n
-  vlen=length(fname)+2
   if (fname ~ /^\./) c_fname = colors[col]
   else c_fname=colors["l"col]
-  if (vlen>maxw) maxw=vlen
-  if (n==1 || vlen < minw) minw=vlen
   display_name=fname
   if (flag_l) {
     if (target) display_name=display_name " -> " ESC"?7l" colors[c_link] target ESC"?7h"
-    if (length(inum)>max_inums) max_inums=length(inum)
-    #if (length(links)>max_links) max_links=length(links)
-    if (length(owner)>max_owner) max_owner=length(owner)
-    if (length(group)>max_group) max_group=length(group)
-    if (length(size)>max_size) max_size=length(size)
-    if (length(sizeb)>max_size) max_size=length(sizeb)
-    if (length(context)>max_context) max_context=length(context)
-    inums_a[n]=inum; perms_a[n]=perms;  owner_a[n]=owner; group_a[n]=group; size_a[n]=size;
-    date_a[n]=date; context_a[n]=context; sizeb_a[n]=sizeb; #links_a[n]=links;
-  } else
+    l=length(inum) ; if (l>max_inums) max_inums=l
+    l=length(owner); if (l>max_owner) max_owner=l
+    l=length(group); if (l>max_group) max_group=l
+    l=length(size) ; if (l>max_size)  max_size=l
+    l=length(sizeb); if (l>max_size)  max_size=l
+    l=length(ctx)  ; if (l>max_ctx)   max_ctx=l
+    inums_a[n]=inum; perms_a[n]=perms; owner_a[n]=owner; group_a[n]=group; size_a[n]=size;
+    date_a[n]=date; ctx_a[n]=ctx; sizeb_a[n]=sizeb; #links_a[n]=links;
+  } else {
+    vlen=len(fname)+2
+    if (vlen>maxw) maxw=vlen
+    if (n==1 || vlen < minw) minw=vlen
     if (missing) c_fname=colors[C_IND["?"] "_bg"]
+    vlen_a[n]=vlen;
+  }
   fname=c_fname icon " " display_name RESET
-  name_a[n]=fname; vlen_a[n]=vlen; cols_a[n]=col
+  name_a[n]=fname; cols_a[n]=col
 }
 END {
   if (flag_l) print_long()
