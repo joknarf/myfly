@@ -1,11 +1,11 @@
 # ls+.awk
 # Author: joknarf
 
-function len(s,  n, t) {
-  n=0
-  # utf-8 ~range
-  if (bbox) n=split(s,t,/[¿-Ј]/)-1
-  return length(s)-n
+function len(s,  n) {
+  n=length(s)
+  # utf-8 ~range [À-ÿ]
+  if (bbox) n-=gsub(/[¿-Ј]/, "&", s)
+  return n
 }
 
 function print_multic() {
@@ -85,7 +85,7 @@ BEGIN {
   init_theme()
 }
 # handle ls error messages
-/^(ls|gls|gnuls):/ { print_ls();print colors["lred"] $0 RESET >"/dev/stderr"; next }
+$1 == ls ":" { print_ls();print colors["lred"] $0 RESET >"/dev/stderr"; next }
 /^"/{ gsub(/^"|\\|":$/,""); print $0":"; next }
 $0=="" { print_ls(); print ""; next }
 /^total / { total_line=$0; next }

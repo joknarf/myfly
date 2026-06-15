@@ -131,7 +131,9 @@ function _fly_hist_init
     [ "$_fly_sqlite" ] || return 1
     [ -f "$FLY_HISTFILE" ] || (
         umask 0077
-        "$_fly_sqlite" "$FLY_HISTFILE" 'CREATE TABLE flyto (params PRIMARY KEY, begin datetime, end datetime, sudo_user, exit_code INTEGER, hostname, user)' 2>/dev/null
+        "$_fly_sqlite" "$FLY_HISTFILE" 'CREATE TABLE flyto (params PRIMARY KEY, begin datetime, end datetime, sudo_user, exit_code INTEGER, hostname, user);
+        CREATE INDEX idx_begin ON flyto(begin);
+        ' 2>/dev/null
     ) || return 1
 }
 
