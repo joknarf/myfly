@@ -134,8 +134,14 @@ nonerdfont() {
 #FLY_MSG="Hello"
 export LANG=en_US.UTF-8
 FLY_TARZ=-J
-typeset +x PS1
+#typeset +x PS1
+command -v whence >/dev/null || whence() { type -p "$@"; }
+read lesspipe <<<$(whence lesspipe.sh lesspipe)
+[ "$lesspipe" ] && export LESSOPEN="|$lesspipe %s"
+export LESSQUIET=1
+export BAT_THEME="Visual Studio Dark+"
 #sleep 60 &
 #sleep 5
 #echo done >&2
 #exec 63>&- # close process substitution
+touch ~/.cd_history 2>/dev/null || CDHISTFILE=/tmp/.cd_history.$USER

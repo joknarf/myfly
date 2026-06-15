@@ -52,7 +52,6 @@ function cdpush {
 function cddelete
 {
   typeset cdhf=${CDHISTFILE:-~/.cd_history}
-  [[ "$1" = \~* ]] && set -- "$HOME"${1#\~}
   grep -Fxv -- "$1" "$cdhf" >"$cdhf.tmp"
   [ -s "$cdhf.tmp" ] && \mv "$cdhf.tmp" "$cdhf"
 }
@@ -81,11 +80,12 @@ function cdselect
 # selector custom keys
 _cd_keys()
 {
-  typeset k="$1" dir="${_aitems[$_nsel]}"
+  typeset k="$1" item="${_aitems[$_nsel]}"
 
   case "$k" in
     '[19~'|$'\x04'|'[3~') # F8 Ctl-D Del
-      cddelete "$dir"
+      _item_expand
+      cddelete "$item"
     ;;
   esac
   return 2
@@ -167,7 +167,7 @@ function cdhist {
 # expand arg without alias expansion
 # use bash_completion _cd or limited cdcomplete
 _cdhist_cd() {
-  typeset row col word="${COMP_WORDS[1]}" dir IFS=$' \t\n' ts='~/' hs="$HOME/" longword prefix
+  typeset row col word="${COMP_WORDS[1]}" item dir IFS=$' \t\n' ts='~/' hs="$HOME/" longword prefix
   [ "$COMP_CWORD" = 1 ] || return 1
   if declare -F _cd >/dev/null; then
     _cd "$1" "${COMP_WORDS[1]}"
@@ -175,7 +175,7 @@ _cdhist_cd() {
     type compopt >/dev/null 2>&1 && compopt -o filenames 2>/dev/null || \
         compgen -f /non-existing-dir/ >/dev/null
     [ "$word" = ".." ] && word="../"
-    _path_expand "$word";dir="$_path_expand"
+    _item_expand "$word";dir="$item"
     [[ "$word" = */* ]] && prefix="${word%/*}/" 
     word="${dir##*/}"
     [[ "$dir" = */* ]] && dir="${dir%/*}" || dir='.'

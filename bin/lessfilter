@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+IFS=: read f1 f2 f3 type <<<"$1"
+read bat <<<$(type -p batcat bat)
+[ "$bat" ] && {
+  [[ $1 = *.* ]] && type="${1##*.}" || type=sh
+  ((${#type} > 5)) && type=sh
+  cmd=($bat -l "$type" --file-name "$1" --style=plain --theme=ansi --color=always --paging=never -) 
+  "${cmd[@]}" </dev/null &>/dev/null || cmd=(cat)
+} || cmd=(cat)
+case "$1" in
+  *.tgp|*.tgp:)
+    (gpg --decrypt --quiet --batch --yes "$f1" |tar tvf -) 2>/dev/null
+    exit $?
+  ;;
+  *.tgp:*)  
+    (gpg --decrypt --quiet --batch --yes "$f1"|tar xOf - "$f2" |"${cmd[@]}") 2>/dev/null
+    exit $?
+  ;;
+esac
+exit 1

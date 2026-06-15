@@ -30,6 +30,10 @@ alias ksu='_fly_destshell=ksh _fly sudo'
 alias zsu='_fly_destshell=zsh _fly sudo'
 alias fsuf='_fly_destshell=fish _fly sudo'
 
+alias flyin='_fly in'
+alias fin='_fly in'
+
 alias flyls='_fly list'
 alias flypack='_fly pack'
 alias cdfly='cd $FLY_HOME/.fly.d'
+
