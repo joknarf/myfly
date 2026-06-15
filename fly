@@ -192,10 +192,12 @@ function _fly_ssh
 {
     _fly_hist_add()
     {
-        typeset hostname user
+        typeset hostname user aliasupd
         _fly_hist_init || return
         read hostname user <<<"$(ssh -G "${ssh_args[@]}" "${ssh_argc[@]}" 2>/dev/null | awk '/^hostname /{h=$2} /^user /{u=$2} h && u {exit} END{print h, u}')"
-        "$_fly_sqlite" "$FLY_HISTFILE" "INSERT OR REPLACE INTO flyto (params, begin, sudo_user, hostname, user, alias) VALUES ('$params', datetime('now','localtime'), '$SUDO_USER', '$hostname', '$user', '$halias')"
+        [ "$halias" ] && aliasupd=", alias='$halias'"
+        "$_fly_sqlite" "$FLY_HISTFILE" "INSERT OR IGNORE INTO flyto (params) VALUES ('$params');
+        UPDATE flyto set begin=datetime('now','localtime'), sudo_user='$SUDO_USER', hostname='$hostname', user='$user' $aliasupd where params='$params';"
     }
     _fly_hist_end()
     {
