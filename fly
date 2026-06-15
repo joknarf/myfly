@@ -39,7 +39,7 @@ function _fly_xpretar
 {
     printf 'FLY_HOME="%s"\n' "$_fly_tmpdir"
     cat - <<'EOF'
-umask 077;mkdir -p "$FLY_HOME"
+(umask 077;mkdir -p "$FLY_HOME")
 ! chmod 700 "$FLY_HOME" && echo "Not owner of $FLY_HOME. Abort" >&2 && exit 1
 type gtar >/dev/null 2>&1 && tar=gtar || tar=tar
 exec 4<>"$FLY_HOME/.fly.lock"
@@ -62,6 +62,17 @@ function _fly_sudo
     sudo -H"${sopt[@]}" '/bin/sh' <<<"$(_fly_pkg_warp "$@")"; e=$?
     \cd "$OLDPWD"
     return $e
+}
+
+function _fly_in
+{
+    typeset container="$1" copt=(-it) cmd
+    [[ $container = *@* ]] && copt+=(-u "${container%%@*}")
+    container="${container#*@}"
+    read cmd <<<"$(whence podman docker)"
+    [ "$cmd" ] || return 1
+    shift
+    "$cmd" exec "${copt[@]}" "$container" /bin/sh -c "$(_fly_pkg_warp "$@")"
 }
 
 function _fly_ssh_ok
@@ -127,7 +138,7 @@ function _fly_hist_init
 function _fly_hist_list {
     _fly_hist_init || return
     typeset filter="$1";shift
-    "$_fly_sqlite" "$@" "$FLY_HISTFILE" "SELECT params, strftime('%Y-%m-%d %H:%M',begin) AS start, user||'@'||hostname AS host, exit_code AS e, sudo_user AS s FROM flyto WHERE params LIKE '$filter%' ORDER BY begin DESC"
+    "$_fly_sqlite" "$@" "$FLY_HISTFILE" "SELECT params, alias, strftime('%Y-%m-%d %H:%M',begin) AS start, user||'@'||hostname AS host, exit_code AS e, sudo_user AS s FROM flyto WHERE params LIKE '$filter%' ORDER BY begin DESC"
 }
 
 function _fly_hist_del {
@@ -178,7 +189,7 @@ function _fly_ssh
         typeset hostname user
         _fly_hist_init || return
         read hostname user <<<"$(ssh -G "${ssh_args[@]}" "${ssh_argc[@]}" 2>/dev/null | awk '/^hostname /{h=$2} /^user /{u=$2} h && u {exit} END{print h, u}')"
-        "$_fly_sqlite" "$FLY_HISTFILE" "INSERT OR REPLACE INTO flyto (params, begin, sudo_user, hostname, user) VALUES ('$params', datetime('now','localtime'), '$SUDO_USER', '$hostname', '$user')"
+        "$_fly_sqlite" "$FLY_HISTFILE" "INSERT OR REPLACE INTO flyto (params, begin, sudo_user, hostname, user, alias) VALUES ('$params', datetime('now','localtime'), '$SUDO_USER', '$hostname', '$user', '$halias')"
     }
     _fly_hist_end()
     {
@@ -192,7 +203,7 @@ function _fly_ssh
         e=$?
         _fly_hist_end
     }
-    typeset cmd ssh_args=() ssh_config ssh_argc=() fly_cmd e params q=$'\''
+    typeset cmd ssh_args=() ssh_config ssh_argc=() fly_cmd e params q=$'\'' halias
     set -A ssh_args 2>/dev/null;set -A ssh_argc 2>/dev/null
     while [ "$1" ];do
         case "$1" in
@@ -202,6 +213,7 @@ function _fly_ssh
         -F*) ssh_config="Include ${1#-F}"; ssh_argc=("$1");;
         -*F*) ssh_args+=("${1%%F*}");ssh_config="Include ${1#-*F}";ssh_argc=(-F "${1#-*F}");;
         --)  shift && fly_cmd=("$@"); break;;
+        *#*) halias="${1#*#}"; ssh_args+=("${1%#*}");;
         *)   ssh_args+=("$1");;
         esac
         shift
@@ -250,6 +262,12 @@ function _fly
             shift;
             [ "$_fly_destshell" ] && ! type "$_fly_destshell" >/dev/null 2>&1 && echo "Cannot find shell $2" >&2 && return 1
             _fly_sudo "$@"
+            return $?
+        ;;
+        in)
+            shift;
+            _fly_tarz='-z'
+            _fly_in "$@"
             return $?
         ;;
         pack)
