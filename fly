@@ -135,6 +135,12 @@ function _fly_hist_init
     ) || return 1
 }
 
+function fly_hist_migr
+{
+   _fly_hist_init || return 1
+   "$_fly_sqlite" "$FLY_HISTFILE" 'ALTER TABLE flyto add alias' 2>/dev/null
+}
+
 function _fly_hist_list {
     _fly_hist_init || return
     typeset filter="$1";shift
