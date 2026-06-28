@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+#
+#!/usr/bin/env -S awk -f ${_} -- <= -S non POSIX
+# coding: utf-8
+#
+# Program for showing the hierarchy of specific processes on a Unix computer.
+# Like pstree but with searching for specific processes with pgrep first and display
+# hierarchy of matching processes (parents and children)
+# should work on any Unix supporting commands :
+# pgrep
+# ps (ax|-e) -o pid=,ppid=,user=,comm=|ucomm=,stime=|start=,args=
+# (RedHat/CentOS/Fedora/Ubuntu/Suse/Solaris...)
+#
 
 # __author__ = "Franck Jouvanceau"
 # __copyright__ = "Copyright 2020, Franck Jouvanceau"
@@ -44,7 +56,7 @@ ps -p $$ -o ucomm >/dev/null 2>&1 && PGT_COMM=ucomm
     [ ! "$PGT_STIME" ] && PGT_STIME=time
 }
 # busybox no -p option
-[ ! "$PGT_COMM" ] && ! ps -p $$ >/dev/null 2>&1 && PGT_COMM=comm && PGT_STIME=time
+[ ! "$PGT_COMM" ] && ! ps -p $$ >/dev/null 2>&1 && PGT_COMM=comm && PGT_STIME=etime
 
 SYSTEM=$(uname -s 2>/dev/null || echo "Linux")
 PS_OPTION=(ax)
@@ -90,25 +102,21 @@ function treedisplay(use_ascii, use_color) {
     if (use_color) {
         COLOR_FG = "\x1b[38;5;"
         COLOR_RESET = "\x1b[0m"
-        colors["pid"] = "12m"
-        colors["user"] = "11m"
-        colors["uid"] = "11m"
-        colors["comm"] = "10m"
-        colors["ucomm"] = "10m"
-        colors["fname"] = "10m"
-        colors["stime"] = "14m"
-        colors["start"] = "14m"
-        colors["args"] = "15m"
-        colors["%cpu"] = "9m"
-        colors["default"] = "13m"
+        col["pid"] = "12m"
+        col[fuser] = "11m"
+        col[fcomm] = "10m"
+        col[fstime] = "14m"
+        col["args"] = "15m"
+        col["%cpu"] = "9m"
+        col["default"] = "13m"
     }
 }
 
 function colorize(field, value) {
     # colorize fields
-    if (field in colors)
-        return COLOR_FG colors[field] value COLOR_RESET
-    return COLOR_FG colors["default"] value
+    if (field in col)
+        return COLOR_FG col[field] value COLOR_RESET
+    return COLOR_FG col["default"] value
 }
 
 function proctree(pids, use_ascii, use_color) {
@@ -151,7 +159,7 @@ function get_psinfo() {
     nfields = split(sfields, fields, ",")
     for (i=1; i<=nfields; i++)
         psopt = psopt " -o " fields[i] dashes(widths[i])
-    out = runcmd("ps " psopt)
+    out = runcmd("COLUMNS=130000 ps " psopt)
     split(out, ps_out, "\n")
     fields[1] = "pid"
     for (i in fields)
@@ -368,7 +376,7 @@ while getopts "$argopt" opt; do
         [cya]) options+=("-$opt") ;;
         W) watch=true ;;
         w) wrap="$OPTARG" ;;
-        T) PGT_PID='spid'; PS_OPTION+=(-T) ;;
+        T) [ "$PGT_STIME" = "etime" ] && PGT_PGREP='_pgrep' || PGT_PID='spid'; PS_OPTION+=(-T) ;;
         k) sig=15 ;;
         K) sig=9 ;;
         p) pids=("$OPTARG");popt=1 ;;

@@ -5,7 +5,7 @@ histappend() {
     history 1|awk 'END{exit(NR!=1)}' && history -a && history -n
     printf '\e[?1h' >&2 #Moba shift arrow
 }
-
+unalias resize 2>/dev/null
 type -p resize >/dev/null 2>&1 || resize() {
   typeset oldstty rows cols
   oldstty=$(stty -g)
