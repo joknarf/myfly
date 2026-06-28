@@ -1,4 +1,4 @@
-type gawk &>/dev/null && declare -A _git_help _puppet_help 2>/dev/null || {
+type -p gawk &>/dev/null && declare -A _git_help _puppet_help 2>/dev/null || {
   # not supported
   comphelp() { :; }
   return
