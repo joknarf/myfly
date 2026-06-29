@@ -145,3 +145,4 @@ export BAT_THEME="Visual Studio Dark+"
 #echo done >&2
 #exec 63>&- # close process substitution
 touch ~/.cd_history 2>/dev/null || CDHISTFILE=/tmp/.cd_history.$USER
+alias flyinst='cd ~/work/flypack;git pull origin main;. ./fly.pak install'

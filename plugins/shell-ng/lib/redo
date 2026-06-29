@@ -35,7 +35,7 @@ _get_hist()
       HISTTIMEFORMAT="$hst"
     ;; 
     "$BASH_VERSION#") fc -lnr -0 -10000 |_parse_hist;;
-    "#$ZSH_VERSION") printf "\t %s\n" "${history[@]}" |_parse_hist;;
+    "#$ZSH_VERSION") _parse_hist <<<$'\t '"${(pj:\n\t :)history}";;
   esac
 }
 
