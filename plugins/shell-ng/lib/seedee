@@ -63,7 +63,7 @@ function cdselect
     [ "$_cdpr" = 1 ] && [ "$BASH" ] && _tput el >&2
     printf "\n" >&2
   }
-  selector -q -P "$CDPOWERLINE" -m "$nb" -k _cd_keys -p cd -o dirnames -F "$filter" -i "$2"
+  selector -q -P "$CDPOWERLINE" -m "$nb" -k _cd_keys -p cd -o dirnames -F "$filter" -f - <<<"$2"
   dir="$selected"
   [ "$_cdpr" ] && {
     _tput cuu1 >&2
