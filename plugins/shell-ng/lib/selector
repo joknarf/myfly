@@ -85,7 +85,7 @@ _menuprompt()
 _showmenu()
 {
   typeset item icon fpath comment ritem
-  typeset -i i min max maxiw maxw maxcw w size
+  typeset -i i j min max maxiw maxw maxcw w size
 
   _nsel="${1:-$_nsel}"
   _nbitems
@@ -101,7 +101,8 @@ _showmenu()
   maxw=0
   for ((i=min;i<=max;i++))
   do
-    item="${_aitems[$i]%%$'\t'*}"
+    ((${#filtered})) && ((j=filtered[i])) || ((j=i))
+    item="${_aitems[$j]%%$'\t'*}"
     ((${#item} > maxw)) && maxw=${#item}
   done
   ((maxw+=2))
@@ -113,7 +114,8 @@ _showmenu()
   ((maxcw<0)) && maxcw=0
   for ((i=min;i<=max;i++))
   do
-    item="${_aitems[$i]}"
+    ((${#filtered[@]})) && ((j=filtered[i])) || ((j=i))
+    item="${_aitems[$j]}"
     comment=""
     [[ $item = *$'\t'* ]] && {
       comment="┆ ${item#*$'\t'}"
@@ -148,26 +150,36 @@ _showmenu()
 
 _nbitems() {
   [ "${_aitems[0]}" ] && unset '_aitems[0]'
+  ((${#filtered[@]})) && nbitems=${#filtered[@]} && return
   nbitems=${#_aitems[@]}
+}
+
+_init_filter() {
+  filtered=();set -A filtered 2>/dev/null
+  return 0
 }
 
 _items_filter()
 {
-  typeset filt="$1" gopt="" _aitems_prev i j=1
+  typeset filt="$1" gopt="" filtered_prev i j=1
   [ "$SELECTOR_CASEI" = true ] && gopt="-i"
   [ "$filt" ] && {
     _nbitems
     _nsel=''
-    [ "$filt" = . ] && filt=''
-    _aitems_prev=($_a "${_aitems[@]}")
-    _aitems=(); set -A _aitems 2>/dev/null
-    for ((i=1;i<=nbitems;i++));do
-      [[ ${_aitems_prev[i]} = *$filt* ]] && _aitems[j++]="${_aitems_prev[i]}"
-    done
+    if ((${#filtered[@]}));then
+      filtered_prev=("${filtered[@]}")
+      filtered=(); set -A filtered 2>/dev/null
+      for i in "${filtered_prev[@]}";do
+        [[ ${_aitems[$i]} = *$filt* ]] && filtered[j++]=$i
+      done
+    else
+      for ((i=1;i<=nbitems;i++));do
+        [[ ${_aitems[i]} = *$filt* ]] && filtered[j++]=$i
+      done
+    fi
+    ((nbitems=${#filtered[@]}))
   }
-  [ "$_nsel" ] && _aitems=($_a ${_aitems[$_nsel]})
   _nsel=1
-  _nbitems
 }
 
 _readkey()
@@ -249,9 +261,10 @@ set +vx
 _dirbrowse() {
   typeset dir="${1:-.}" depth=${2:-1} 
   dir=$(\cd "$dir" >/dev/null 2>&1||exit 1;pwd) || return 3
+  _items_ori=("${_aitems[@]}")
   _load_items < <(find -L "$dir" -xdev -mindepth 1 -maxdepth "$depth" "${_find_type[@]}" -print 2>/dev/null|\
     sed -e "s#^$_path_rprefix#$_path_fprefix#" -e s"#^$HOME/#\~/#" -e 's#^\./##'|sort)
-  ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}") && return 0
+  ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}") && _init_filter && return 0
   _aitems=($_a "${_items_ori[@]}")
   _nbitems
   _menuprompt
@@ -259,7 +272,7 @@ _dirbrowse() {
 }
 
 _file_keys() {
-  typeset k="$1" item="${_aitems[$_nsel]}"
+  typeset k="$1"
   [ "$archive" ] && _item_arch || _item_expand
   case "$k" in
     $'\t') # tab
@@ -280,6 +293,7 @@ _file_keys() {
         _aitems=($_a "${_last_items[@]}") _items_ori=("${_last_items_ori[@]}")
         _last_items='' _last_items_ori=''
         _force_nsel=$_last_nsel _last_nsel='' archive=''
+        _init_filter
         return 0
       }
       [ "$archive" ] && item="$archive" && _last_nsel=1
@@ -332,7 +346,7 @@ _file_keys() {
 
 _domenu()
 {
-  typeset o=n _force_nsel
+  typeset o=n _force_nsel item
   typeset -i lines
   _nsel=''
   printf "\r"
@@ -352,10 +366,12 @@ _domenu()
   : "${COLUMNS:=$(_tput cols)}"
   ((_maxlines > 2)) || _maxlines=''
   _showmenu
-  _items_ori=("${_aitems[@]}")
+  #_items_ori=("${_aitems[@]}")
   [ "$stream" ] && return
   while true
   do
+    ((${#filtered[@]})) && ((cur=filtered[_nsel])) || ((cur=_nsel))
+    item="${_aitems[cur]%%$'\t'*}"
     _readkey $o #$key
     e=2
     [ "$_sel_option" ] && { _file_keys "$key" ; e=$?; }
@@ -396,10 +412,10 @@ _domenu()
         nbitems=${#_aitems[@]}
         _tput ed
         [ "$nbitems" = 0 ] && break
-        filter='';_showmenu "$_nsel";;
+        filter='';_init_filter;_showmenu "$_nsel";;
       $'\x7f'|$'\x08') #backspace
         filter="${filter%?}"
-        _aitems=($_a "${_items_ori[@]}")
+        _init_filter
         _nsel=''
         _items_filter "$filter"
         [ "$_autofilter" = y ] && _showmenu || _menuprompt
@@ -414,7 +430,6 @@ _domenu()
             printf "Not found !"
             _tput el
             read -rs"$o"1 -t 0.5 key 2>/dev/null
-            _aitems=($_a "${_items_ori[@]}")
             filter="${filter%?}"
             _nsel=''
             _items_filter "$filter"
@@ -428,7 +443,7 @@ _domenu()
         _maxlines=''
         _showmenu;;
       $'\x0d'|''|$'\n'|$'\t') # enter tab
-        selected="${_aitems[$_nsel]}"
+        selected="$item"
         break;;
       *) break;
     esac
@@ -443,7 +458,7 @@ function selector
   typeset prompt filter
   typeset bg="\e[48;2;" fg="\e[38;2;" pl=""
   typeset wfg="$fg${SELECTOR_COL_TEXT}m"
-typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a
+typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a filtered
   [ "$ZSH_VERSION" ] || _a='_'
   prompt='select'
   selected=''
