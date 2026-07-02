@@ -73,7 +73,7 @@ _redo_del()
 redodel()
 {
   _tput cuu1 >&2
-  selector -p redodel -m 10 -k _redo_key -f - <<<"$(_get_hist)"
+  selector -p redodel -m 10 -k _redo_key -f - < <(_get_hist)
 }
 
 _redo_key()
@@ -92,7 +92,7 @@ _redo_selector()
   [ "$2" ] || local selected
   [ "$BASH" ] && _tput el >&2 && printf "%s" "$1" >&2
   printf "\n" >&2
-  selector -q -p redo -m 10 -k _redo_key -f - <<<"$(_get_hist |grep -F -- "$1" 2>/dev/null)" || selected="$1"
+  selector -q -p redo -m 10 -k _redo_key -f - < <(_get_hist |grep -F -- "$1" 2>/dev/null) || selected="$1"
   _tput cuu1 >&2
   # bash 3/4 bug repeating prompt/command
   [[ "$BASH_VERSION" = @(3.*|4.[0-3].*) ]] && {

@@ -58,12 +58,13 @@ function cddelete
 
 function cdselect
 {
-  typeset selected dir nb="$1" filter="$3" t l
+  typeset selected dir nb="$1" filter="$2" t l
   [ "$_cdpr" ] && {
     [ "$_cdpr" = 1 ] && [ "$BASH" ] && _tput el >&2
     printf "\n" >&2
   }
-  selector -q -P "$CDPOWERLINE" -m "$nb" -k _cd_keys -p cd -o dirnames -F "$filter" -f - <<<"$2"
+  selector -q -P "$CDPOWERLINE" -m "$nb" -k _cd_keys -p cd -o dirnames -F "$filter" -f -
+  printf '\r' >&2;_tput el >&2
   dir="$selected"
   [ "$_cdpr" ] && {
     _tput cuu1 >&2
@@ -106,7 +107,7 @@ function cdhist {
   [ "$1" = ++ ] && shift && { cdsub 4 . "$@"; return; }
   [ -x /bin/nawk ] && awk=nawk
   [ "$1" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
-  cdselect "$nb" "$($awk '$0 == pwd {next} $0 ~ gr {sub("^"hom"(/|$)","~/");print;'$first'}' gr="$gr" pwd="$PWD" hom=$HOME "$cdhf")"
+  cdselect "$nb" < <($awk '$0 == pwd {next} $0 ~ gr {sub("^"hom"(/|$)","~/");print;'$first'}' gr="$gr" pwd="$PWD" hom=$HOME "$cdhf")
 }
 [ "$ZSH_VERSION" ] && {
   function _zle_do {
@@ -208,7 +209,7 @@ _cdhist_cd() {
   # [ ! "$COMP_TYPE" = 63 ]   && return #tab-tab but... tab: COMP_TYPE=9
   printf "\r" >&2
   IFS=$'\n'
-  COMPREPLY=( "$(_cdpr=2 cdselect "$CDNBDIRS" "$(printf "%s\n" "${COMPREPLY[@]}"|sort -u)" "$longword")" )
+  COMPREPLY=( "$(_cdpr=2 cdselect "$CDNBDIRS" "$longword" < <(printf "%s\n" "${COMPREPLY[@]}"|sort -u))" )
   IFS=$' \t\n'
   _tput cuf $((col-1)) >&2
   [ "${COMPREPLY[0]}" ] && {
@@ -241,9 +242,8 @@ function cdsub {
   [ -x /bin/nawk ] && awk=nawk
   [ "$1" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
   gr="${gr%/}"
-  printf "%s" " Searching directories..." >&2
-  cdselect "$CDNBDIRS" "$(find -L "$orig" -xdev -mindepth 1 -maxdepth "$depth" -type d -print 2>/dev/null|\
-    sort -u |grep -- "$gr" 2>/dev/null|sed -e 's#^\./##';printf '\e[25D\e[K' >&2)" #_tput breaks old ksh
+  cdselect "$CDNBDIRS" < <(find -L "$orig" -xdev -mindepth 1 -maxdepth "$depth" -type d -print 2>/dev/null|\
+    grep -- "$gr" 2>/dev/null|sed -e 's#^\./##'|sort)
 }
 
 # use locate to get directories
@@ -262,7 +262,7 @@ function locatedir {
 
 function cdlocate {
   [ "$_cdpr" = 1 ] && _tput el >&2
-  cdselect -1 "$(locatedir "$@")"
+  cdselect -1 < <(locatedir "$@")
 }
 
 
