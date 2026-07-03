@@ -249,6 +249,7 @@ _view_file() {
       ((${#_items})) || return 3
       _items_ori=("${_aitems[@]}")
       _load_items <<<"$_items"
+      _init_filter
       archive="$item"
       _force_nsel=''
 set +vx
