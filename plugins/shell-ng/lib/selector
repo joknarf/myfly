@@ -75,7 +75,7 @@ _load_items() {
 
 _menuprompt()
 {
-  typeset filt="${filter:-${_aitems[$_nsel]%%$'\t'*}}"
+  typeset filt="${filter:-$item}"
   printf "\r"
   printf "$disp_form" "$prompt" "$_nsel/$nbitems" "$filt"
   _tput el
@@ -84,13 +84,15 @@ _menuprompt()
 
 _showmenu()
 {
-  typeset item icon fpath comment ritem
+  typeset icon fpath comment ritem cur
   typeset -i i j min max maxiw maxw maxcw w size
 
   _nsel="${1:-$_nsel}"
   _nbitems
   ((_nsel < 1)) && _nsel=1
   ((_nsel > nbitems)) && ((_nsel=nbitems))
+  ((${#filtered[@]})) && ((cur=filtered[_nsel])) || ((cur=_nsel))
+  item="${_aitems[cur]%%$'\t'*}"
   _menuprompt
   lines=${_maxlines:-$LINES}
   ((lines >= LINES)) && ((lines=LINES-1))
@@ -146,6 +148,7 @@ _showmenu()
   _tput ed
   _tput cuu $size
   printf "\r" # begin of line
+  item="${_aitems[cur]%%$'\t'*}"
 }
 
 _nbitems() {
@@ -370,8 +373,6 @@ _domenu()
   [ "$stream" ] && return
   while true
   do
-    ((${#filtered[@]})) && ((cur=filtered[_nsel])) || ((cur=_nsel))
-    item="${_aitems[cur]%%$'\t'*}"
     _readkey $o #$key
     e=2
     [ "$_sel_option" ] && { _file_keys "$key" ; e=$?; }
