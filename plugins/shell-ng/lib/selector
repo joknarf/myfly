@@ -58,26 +58,37 @@ _tput() {
     esac
 }
 
+_sel_tty_init() {
+  $tty_init && return
+  $_sel_stty intr '' -echo </dev/tty 2>/dev/null
+  [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
+  _tput civis
+  printf "\e[?7l" # nowrap
+  : "${_maxlines:=$LINES}"
+  ((_maxlines > 2)) || _maxlines=''
+  tty_init=true
+}
+
 _load_items() {
-    typeset p="$prompt" i=1 item
-    prompt="Loading..."
-    _menuprompt >&2
+    typeset i=1 item
     _aitems=();set -A _aitems 2>/dev/null
     while IFS=$'\n' read -r item;do
         _aitems[i++]="$item"
-        ((${#_aitems[@]} == _maxlines)) && { [ "$stream" ] && _domenu >&2 ||_showmenu; }
+        ((${#_aitems[@]} == 2)) && _menuprompt 'Loading...'
+        ((${#_aitems[@]} == _maxlines)) && { [ "$stream" ] && _showmenu; }
     done
     nbitems=${#_aitems[@]}
     stream=''
-    prompt="$p"
-    _menuprompt >&2
+    ((nbitems==1)) && selected="${_aitems[1]%%$'\t'*}" && return
+    ((nbitems>1)) && _menuprompt >&2
 }
 
 _menuprompt()
 {
-  typeset filt="${filter:-$item}"
+  typeset p="${1:-$prompt}" filt="${filter:-$item}"
+  _sel_tty_init
   printf "\r"
-  printf "$disp_form" "$prompt" "$_nsel/$nbitems" "$filt"
+  printf "$disp_form" "$p" "$_nsel/$nbitems" "$filt"
   _tput el
   printf "\r"
 }
@@ -252,7 +263,6 @@ _view_file() {
       _init_filter
       archive="$item"
       _force_nsel=''
-set +vx
       return 0
     ;;
   esac
@@ -263,9 +273,10 @@ set +vx
 }
 
 _dirbrowse() {
-  typeset dir="${1:-.}" depth=${2:-1} 
+  typeset dir="${1:-.}" 
   dir=$(\cd "$dir" >/dev/null 2>&1||exit 1;pwd) || return 3
   _items_ori=("${_aitems[@]}")
+  _menuprompt 'Loading...'
   _load_items < <(find -L "$dir" -xdev -mindepth 1 -maxdepth "$depth" "${_find_type[@]}" -print 2>/dev/null|\
     sed -e "s#^$_path_rprefix#$_path_fprefix#" -e s"#^$HOME/#\~/#" -e 's#^\./##'|sort)
   ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}") && _init_filter && return 0
@@ -288,11 +299,13 @@ _file_keys() {
     '[C'|OC) # right
       [ -d "$item" ] && {
         _last_nsel=$_nsel _last_items=("${_aitems[@]}") _last_items_ori=("${_items_ori[@]}")
+        depth=1
         _dirbrowse "$item"; return $?
       }
       _view_file; return $?
     ;;
     '[D'|OD) # left
+      depth=1
       [ "$_last_items" ] && {
         _aitems=($_a "${_last_items[@]}") _items_ori=("${_last_items_ori[@]}")
         _last_items='' _last_items_ori=''
@@ -312,18 +325,22 @@ _file_keys() {
     '[1;2C') # shift right
       [[ "$item" = */* ]] && item="${item%/*}" || item="."
       : ${item:=/}
-      _dirbrowse "$item" 4
+      ((depth++))
+      _dirbrowse "$item"
+      _init_filter
+      _items_filter "$filter"
       return 0
     ;;
     '[1;2D') # shift left
       [[ "$item" = */* ]] && item="${item%/*}" || item="."
       : ${item:=/}
-      _dirbrowse "$item" 1
+      depth=1
+      _dirbrowse "$item"
       return 0
     ;;
     '²'|'OP') # F1
-      _items=$(printf "%s\n" "${_aitems[@]}"|grep -E -v '^\.[^/]|/\.')
-      ((${#_items})) || return 1
+      _load_items < <(printf "%s\n" "${_aitems[@]}"|grep -E -v '^\.[^/]|/\.')
+      ((${#_aitems[@]})) || return 1
       return 0
     ;;
     'OQ') # F2
@@ -363,15 +380,9 @@ _domenu()
     selected="${_aitems[1]}"
     return 0
   }
-  _tput civis
-  $_sel_stty -echo </dev/tty 2>/dev/null
-  printf "\e[?7l" # nowrap
-  : "${LINES:=$(_tput lines)}"
-  : "${COLUMNS:=$(_tput cols)}"
-  ((_maxlines > 2)) || _maxlines=''
+
   _showmenu
   #_items_ori=("${_aitems[@]}")
-  [ "$stream" ] && return
   while true
   do
     _readkey $o #$key
@@ -395,9 +406,9 @@ _domenu()
         filter='';_showmenu $((_nsel-1));;
       '[B'|OB) #down
         filter='';_showmenu $((_nsel+1));;
-      '[H'|'[D'|OD|'[1;5H'|'[1;2D') #home or [shift] arrowleft
+      '[H'|'[D'|OD|OH|'[1;5H'|'[1;2D'|'[1~') #home or [shift] arrowleft
         filter='';_showmenu 1;;
-      '[F'|'[C'|OC|'[1;5F'|'[1;2C') #end or [shift] arrowright
+      '[F'|'[C'|OC|OF|'[1;5F'|'[1;2C'|'[4~') #end or [shift] arrowright
         filter='';_showmenu "$nbitems";;
       '[6~'|$'\x06'|'[1;2B') #pagedn Ctl-F shift-down
         filter='';_showmenu $((_nsel+lines-1));;
@@ -460,7 +471,7 @@ function selector
   typeset prompt filter
   typeset bg="\e[48;2;" fg="\e[38;2;" pl=""
   typeset wfg="$fg${SELECTOR_COL_TEXT}m"
-typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a filtered
+  typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a filtered depth=1 tty_init=false
   [ "$ZSH_VERSION" ] || _a='_'
   prompt='select'
   selected=''
@@ -525,11 +536,11 @@ typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items
   disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%-*s$fg${SELECTOR_COL_COMSEL}m%s\e[0m"
   disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%-*s$fg${SELECTOR_COL_COMMENT}m%s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
-  typeset _stty_ori=$($_sel_stty -g </dev/tty 2>/dev/null)
-  $_sel_stty intr '' </dev/tty 2>/dev/null
+  : "${_maxlines:=$LINES}"
   [ "$stream" ] && {
-    [ "$itemfile" = - ] && _load_items || _load_items < <(cat $itemfile)
-  } || _load_items <<<"$_items"
+    [ "$itemfile" = - ] && _load_items >&2 || _load_items < <(cat $itemfile) >&2
+  } || _load_items <<<"$_items" >&2
+  [ "$selected" ] && return 0
   [ -t 0 ] || exec </dev/tty
   [ "$__sel_lc" ] && LC_ALL="$__sel_lc" _domenu >&2 || _domenu >&2
   $_sel_stty "$_stty_ori" </dev/tty 2>/dev/null
@@ -538,6 +549,8 @@ typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items
   $quiet || printf "%s" "$selected"
   return 0
 }
+
+_sel_stty_ori=$($_sel_stty -g </dev/tty 2>/dev/null)
 
 [[ "$LANG" = *UTF-8 ]] || {
   type locale >/dev/null 2>/dev/null && locale -a |grep -iq "en_US.UTF-*8" && __sel_lc=en_US.UTF-8 || __sel_lc=C.UTF-8
