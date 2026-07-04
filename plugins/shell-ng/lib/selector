@@ -60,7 +60,7 @@ _tput() {
 
 _sel_tty_init() {
   $tty_init && return
-  : "${_sel_stty_ori:=$($_sel_stty -g </dev/tty 2>/dev/null)}"
+  _stty_ori="$($_sel_stty -g </dev/tty 2>/dev/null)"
   $_sel_stty intr '' -echo </dev/tty 2>/dev/null
   [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
   _tput civis
@@ -75,15 +75,17 @@ _sel_tty_init() {
 }
 
 _load_items() {
-    typeset i=1 item
+    typeset i=1 item p="$prompt"
+    prompt="Loading..."
     _aitems=();set -A _aitems 2>/dev/null
     while IFS=$'\n' read -r item;do
         _aitems[i++]="$item"
-        ((${#_aitems[@]} == 2)) && _menuprompt 'Loading...'
+        ((${#_aitems[@]} == 2)) && _menuprompt
         ((${#_aitems[@]} == _maxlines)) && { [ "$stream" ] && _showmenu; }
     done
     nbitems=${#_aitems[@]}
     stream=''
+    prompt="$p"
     ((nbitems==1)) && selected="${_aitems[1]%%$'\t'*}" && return
     ((nbitems>1)) && _menuprompt >&2
 }
@@ -476,7 +478,7 @@ function selector
   typeset prompt filter
   typeset bg="\e[48;2;" fg="\e[38;2;" pl=""
   typeset wfg="$fg${SELECTOR_COL_TEXT}m"
-  typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a filtered depth=1 tty_init=false
+  typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a filtered depth=1 tty_init=false _stty_ori
   [ "$ZSH_VERSION" ] || _a='_'
   prompt='select'
   selected=''
@@ -544,8 +546,8 @@ function selector
   [ "$selected" ] || {
     [ -t 0 ] || exec </dev/tty
     [ "$__sel_lc" ] && LC_ALL="$__sel_lc" _domenu >&2 || _domenu >&2
-    $_sel_stty "$_sel_stty_ori" </dev/tty 2>/dev/null
   }
+  $tty_init && $_sel_stty "$_stty_ori" </dev/tty 2>/dev/null
   selected="${selected%%$'\t'*}"
   [ "$selected" ] || return 1
   $quiet || printf "%s" "$selected"
