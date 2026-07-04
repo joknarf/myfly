@@ -106,7 +106,8 @@ function cdhist {
   [ "$1" = + ] && shift && { cdsub 1 . "$@"; return; }
   [ "$1" = ++ ] && shift && { cdsub 4 . "$@"; return; }
   [ -x /bin/nawk ] && awk=nawk
-  [ "$1" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
+  [ "$1" ] && gr="$1"
+  [ "$2" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
   cdselect "$nb" < <($awk '$0 == pwd {next} $0 ~ gr {sub("^"hom"(/|$)","~/");print;'$first'}' gr="$gr" pwd="$PWD" hom=$HOME "$cdhf")
 }
 [ "$ZSH_VERSION" ] && {
@@ -240,7 +241,8 @@ function cdsub {
   typeset depth="$1" orig="$2" gr=. awk=awk
   shift 2
   [ -x /bin/nawk ] && awk=nawk
-  [ "$1" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
+  [ "$1" ] && gr="$1"
+  [ "$2" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
   gr="${gr%/}"
   cdselect "$CDNBDIRS" < <(find -L "$orig" -xdev -mindepth 1 -maxdepth "$depth" -type d -print 2>/dev/null|\
     grep -- "$gr" 2>/dev/null|sed -e 's#^\./##'|sort)
@@ -252,7 +254,8 @@ function locatedir {
   type locate >/dev/null 2>/dev/null || { printf "no locate command found" >&2;sleep 0.7;return; }
   [ ! "$1" ] && printf "need to give pattern" >&2 && sleep 0.7 && return
   [ -x /bin/nawk ] && awk=nawk
-  gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
+  gr="$1"
+  [ "$2" ] && gr=$($awk 'BEGIN{OFS=".*";for(i=1;i<ARGC;i++) $i=ARGV[i];print}' "$@")
   shift $(($# - 1))
   (locate -r "$gr" 2>/dev/null|| locate "$gr") |awk -F'/' '/\/\.|^\/snap/{next}$NF ~ gr' gr="${1##*/}" |while read file
   do
