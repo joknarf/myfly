@@ -61,7 +61,6 @@ _tput() {
 _sel_tty_init() {
   $tty_init && return
   _stty_ori="$($_sel_stty -g </dev/tty 2>/dev/null)"
-  trap "break=1;_tput ed >&2;_tput cnorm>&2;trap - INT;$_sel_stty $_stty_ori </dev/tty;return" INT
   $_sel_stty -echo </dev/tty 2>/dev/null
   [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
   _tput civis
@@ -73,6 +72,16 @@ _sel_tty_init() {
   disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%-*s$fg${SELECTOR_COL_COMMENT}m%s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
   tty_init=true
+}
+
+_sel_tty_restore() {
+  break=1
+  $tty_init || return
+echo $$ $_sel_stty $_stty_ori >>/tmp/Tt
+  _tput ed >&2
+  _tput cnorm >&2
+  trap - INT TERM
+  $_sel_stty $_stty_ori </dev/tty
 }
 
 _load_items() {
@@ -547,6 +556,7 @@ function selector
   done
   [ "$_powerline" = "y" ] || pl="►"
   [ ! "$stream" ] && ((${#_items}==0)) && return 1
+  trap '_sel_tty_restore;return' INT TERM
   [ "$stream" ] && {
     [ "$itemfile" = - ] && _load_items >&2 || _load_items < <(cat $itemfile) >&2
   } || _load_items <<<"$_items" >&2
@@ -556,7 +566,7 @@ function selector
   }
   unset break
   $tty_init && $_sel_stty "$_stty_ori" </dev/tty 2>/dev/null
-  trap - INT
+  trap - INT TERM
   selected="${selected%%$'\t'*}"
   [ "$selected" ] || return 1
   $quiet || printf "%s" "$selected"
