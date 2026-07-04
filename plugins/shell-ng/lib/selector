@@ -61,7 +61,9 @@ _tput() {
 _sel_tty_init() {
   $tty_init && return
   _stty_ori="$($_sel_stty -g </dev/tty 2>/dev/null)"
-  $_sel_stty intr '' -echo </dev/tty 2>/dev/null
+  trap "_tput ed;$_sel_stty $_stty_ori </dev/tty;_tput cnorm;trap - INT;break=1;return" INT
+  #$_sel_stty intr '' -echo </dev/tty 2>/dev/null
+  $_sel_stty -echo </dev/tty 2>/dev/null
   [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
   _tput civis
   printf "\e[?7l" # nowrap
@@ -75,17 +77,17 @@ _sel_tty_init() {
 }
 
 _load_items() {
-    typeset i=1 item p="$prompt"
-    prompt="Loading..."
+    typeset nb=1 it 
+    stream=1
     _aitems=();set -A _aitems 2>/dev/null
-    while IFS=$'\n' read -r item;do
-        _aitems[i++]="$item"
-        ((${#_aitems[@]} == 2)) && _menuprompt
+    while IFS=$'\n' read -r it;do
+        [ "$break" ] && return
+        _aitems[nb++]="$it"
+        ((${#_aitems[@]} == 2)) && _menuprompt "Loading..."
         ((${#_aitems[@]} == _maxlines)) && { [ "$stream" ] && _showmenu; }
     done
     nbitems=${#_aitems[@]}
     stream=''
-    prompt="$p"
     ((nbitems==1)) && selected="${_aitems[1]%%$'\t'*}" && return
     ((nbitems>1)) && _menuprompt >&2
 }
@@ -93,6 +95,7 @@ _load_items() {
 _menuprompt()
 {
   typeset p="${1:-$prompt}" filt="${filter:-$item}"
+  [ "$break" ] && return
   _sel_tty_init
   printf "\r"
   printf "$disp_form" "$p" "$_nsel/$nbitems" "$filt"
@@ -105,13 +108,14 @@ _showmenu()
   typeset icon fpath comment ritem cur
   typeset -i i j min max maxiw maxw maxcw w size
 
+  [ "$break" ] && return
   _nsel="${1:-$_nsel}"
   _nbitems
   ((_nsel < 1)) && _nsel=1
   ((_nsel > nbitems)) && ((_nsel=nbitems))
   ((${#filtered[@]})) && ((cur=filtered[_nsel])) || ((cur=_nsel))
   item="${_aitems[cur]%%$'\t'*}"
-  _menuprompt
+  _menuprompt ${stream:+Loading...}
   lines=${_maxlines:-$LINES}
   ((lines >= LINES)) && ((lines=LINES-1))
   ((min=_nsel-lines+2))
@@ -206,9 +210,10 @@ _items_filter()
 _readkey()
 {
   typeset o=${1:-n} k tmout=0.001
+  [ "$break" ] && return
   [ "$KSH_VERSION" ] && tmout=0.01
   IFS= read -rs"$o"1 key
-  [ "$key" = $'\x1b' ] && key="" && while true
+  [ "$key" = $'\x1b' ] && key="" && while [ ! "$break" ]
   do
     k=""
     LC_NUMERIC=C read -rs"$o"1 -t $tmout k 2>/dev/null # LC_NUMERIC=C for old ksh
@@ -393,6 +398,7 @@ _domenu()
   while true
   do
     _readkey $o #$key
+    [ "$break" ] && break
     e=2
     [ "$_sel_option" ] && { _file_keys "$key" ; e=$?; }
     [ "$e" = 2 ] && [ "$_keyfunc" ] && { $_keyfunc "$key"; e=$?; }
@@ -488,6 +494,7 @@ function selector
   _keyfunc=""
   _sel_option=""
   quiet=false
+  unset break
   
   while [ $# -gt 0 ]; do
     shift=2
@@ -543,11 +550,13 @@ function selector
   [ "$stream" ] && {
     [ "$itemfile" = - ] && _load_items >&2 || _load_items < <(cat $itemfile) >&2
   } || _load_items <<<"$_items" >&2
-  [ "$selected" ] || {
+  [ ! "$selected" ] && [ ! "$break" ] && {
     [ -t 0 ] || exec </dev/tty
     [ "$__sel_lc" ] && LC_ALL="$__sel_lc" _domenu >&2 || _domenu >&2
   }
+  unset break
   $tty_init && $_sel_stty "$_stty_ori" </dev/tty 2>/dev/null
+  trap - INT
   selected="${selected%%$'\t'*}"
   [ "$selected" ] || return 1
   $quiet || printf "%s" "$selected"
