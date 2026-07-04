@@ -58,7 +58,7 @@ function cddelete
 
 function cdselect
 {
-  typeset selected dir nb="$1" filter="$2" t l
+  typeset dir nb="$1" filter="$2" t l
   [ "$_cdpr" ] && {
     [ "$_cdpr" = 1 ] && [ "$BASH" ] && _tput el >&2
     printf "\n" >&2
@@ -66,6 +66,7 @@ function cdselect
   selector -q -P "$CDPOWERLINE" -m "$nb" -k _cd_keys -p cd -o dirnames -F "$filter" -f -
   printf '\r' >&2;_tput el >&2
   dir="$selected"
+  unset selected
   [ "$_cdpr" ] && {
     _tput cuu1 >&2
     # bash 3/4 bug repeating prompt/command
