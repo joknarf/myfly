@@ -251,7 +251,7 @@ _complete_ng_selector() {
     fi
     [ "$code" = 0 ] || return $code
     n="${values[$selected]}"
-    [ "$n" ] && line="${lines[$n]}}" || {
+    [ "$n" ] && line="${lines[$n]}" || {
         [[ $selected = ~* ]] && tilde='~'
         s="$(printf '%s%q' "$tilde" "${(q)selected#\~}")"
         line="${(q)selected}${_COMPLETE_NG_SEP}$s${_COMPLETE_NG_SEP}100${_COMPLETE_NG_SEP}"
