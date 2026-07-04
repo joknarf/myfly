@@ -88,8 +88,9 @@ _load_items() {
     done
     nbitems=${#_aitems[@]}
     stream=''
-    ((nbitems==1)) && selected="${_aitems[1]%%$'\t'*}" && return
+    ((nbitems==1)) && selected="${_aitems[1]%%$'\t'*}" && return 0
     ((nbitems>1)) && _menuprompt >&2
+    return 0
 }
 
 _menuprompt()
