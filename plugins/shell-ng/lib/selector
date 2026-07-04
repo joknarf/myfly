@@ -87,6 +87,7 @@ echo $$ $_sel_stty $_stty_ori >>/tmp/Tt
 _load_items() {
     typeset nb=1 it 
     stream=1
+    _init_filter
     _aitems=();set -A _aitems 2>/dev/null
     while IFS=$'\n' read -r it;do
         [ "$break" ] && return
@@ -281,7 +282,6 @@ _view_file() {
       ((${#_items})) || return 3
       _items_ori=("${_aitems[@]}")
       _load_items <<<"$_items"
-      _init_filter
       archive="$item"
       _force_nsel=''
       return 0
@@ -300,7 +300,7 @@ _dirbrowse() {
   _menuprompt 'Loading...'
   _load_items < <(find -L "$dir" -xdev -mindepth 1 -maxdepth "$depth" "${_find_type[@]}" -print 2>/dev/null|\
     sed -e "s#^$_path_rprefix#$_path_fprefix#" -e s"#^$HOME/#\~/#" -e 's#^\./##'|sort)
-  ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}") && _init_filter && return 0
+  ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}") && return 0
   _aitems=($_a "${_items_ori[@]}")
   _nbitems
   _menuprompt
