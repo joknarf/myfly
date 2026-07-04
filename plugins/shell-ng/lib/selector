@@ -61,7 +61,7 @@ _tput() {
 _sel_tty_init() {
   $tty_init && return
   _stty_ori="$($_sel_stty -g </dev/tty 2>/dev/null)"
-  trap "_tput ed;$_sel_stty $_stty_ori </dev/tty;_tput cnorm;trap - INT;break=1;return" INT
+  trap "break=1;_tput ed;_tput cnorm;trap - INT;$_sel_stty $_stty_ori </dev/tty;return" INT
   #$_sel_stty intr '' -echo </dev/tty 2>/dev/null
   $_sel_stty -echo </dev/tty 2>/dev/null
   [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
