@@ -78,7 +78,7 @@ redodel()
 
 _redo_key()
 {
-  k="$1" cmd="${_aitems[$_nsel]}"
+  k="$1" cmd="$item"
   case "$k" in
     '[19~'|$'\x04'|'[3~') # F8 Ctl-D delete
       _redo_del "$cmd"
