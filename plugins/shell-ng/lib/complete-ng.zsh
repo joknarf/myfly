@@ -29,7 +29,7 @@ _complete_ng_browse() {
     zle -Rc
     printf '\n' >&2
     SELECTOR_CASEI="$COMPLETE_NG_CASEI" selector -q -m 10 -k _complete-ng_key -o filenames -f - <<(setopt NULL_GLOB; print -rl -- .* *)
-    _tput cuu1 >&2
+    _sel_tput cuu1 >&2
     BUFFER="$selected"
     zle reset-prompt
     zle end-of-line
@@ -243,7 +243,7 @@ _complete_ng_selector() {
         longword="$(sed -e 's/\t.*//' -e '$!{N;s/^\(.*\).*\n\1.*$/\1\n\1/;D;}' <<<"${(F)items}")"
         SELECTOR_CASEI="$COMPLETE_NG_CASEI" selector -q -m 10 -k _complete-ng_key -F "$longword" "${selopt[@]}" -f - <<<"${(F)items}"
         code="$?"
-        _tput cuu1 >/dev/tty
+        _sel_tput cuu1 >/dev/tty
         [ ! "$selected" ] && [ "$longword" != "$PREFIX" ] && code="0" && selected="$longword"
     else
         selected="${items%%$'\t'*}"

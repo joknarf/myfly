@@ -1,7 +1,7 @@
 OSVERSION="$ps1_osinfo"
 [ "$BASH" ] && {
 
-[ -f $FLY_HOME/.fly.d/.ish_tty ] && _tput() {
+[ -f $FLY_HOME/.fly.d/.ish_tty ] && _sel_tput() {
     typeset row col
     case "$1" in
         # -------- Erase eol/eos ----------

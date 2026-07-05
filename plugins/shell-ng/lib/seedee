@@ -60,20 +60,20 @@ function cdselect
 {
   typeset dir nb="$1" filter="$2" t l
   [ "$_cdpr" ] && {
-    [ "$_cdpr" = 1 ] && [ "$BASH" ] && _tput el >&2
+    [ "$_cdpr" = 1 ] && [ "$BASH" ] && _sel_tput el >&2
     printf "\n" >&2
   }
   selector -q -P "$CDPOWERLINE" -m "$nb" -k _cd_keys -p cd -o dirnames -F "$filter" -f -
-  printf '\r' >&2;_tput el >&2
+  printf '\r' >&2;_sel_tput el >&2
   dir="$selected"
   unset selected
   [ "$_cdpr" ] && {
-    _tput cuu1 >&2
+    _sel_tput cuu1 >&2
     # bash 3/4 bug repeating prompt/command
     [ "$_cdpr" = 1 ] && [[ "$BASH_VERSION" = @(3.*|4.[0-3].*) ]] && {
       t=${PS1//$'\n'/}
       l=$(( ${#PS1} - ${#t} ))
-      [ "$l" -gt 0 ] && _tput cuu $l >&2
+      [ "$l" -gt 0 ] && _sel_tput cuu $l >&2
     }
   }
   [[ $dir = \~ || $dir = \~/* ]] && dir="$HOME"${dir#\~}
@@ -100,7 +100,7 @@ _cd_keys()
 function cdhist {
   typeset gr=. nb="${CDNBDIRS:-10}" cdhf=${CDHISTFILE:-~/.cd_history} first='' awk=awk dir
   [ ! -s "$cdhf" ] && printf "%s" "$CDINITDIRS" >"$cdhf"
-  [ "$_cdpr" = 1 ] && [ "$BASH" ] && _tput el >&2
+  [ "$_cdpr" = 1 ] && [ "$BASH" ] && _sel_tput el >&2
   [ "$1" = -a ] && nb=-1 && shift
   [ "$1" = - ] && first="exit" && shift
   [ "$1" = -l ] && shift && { cdlocate "$@"; return; }
@@ -200,9 +200,9 @@ _cdhist_cd() {
   [ ${#COMPREPLY[@]} = 0 ] && {
     printf '\nNot found !\r'
     sleep 0.2
-    _tput el >&2
-    _tput cuu1 >&2
-    _tput cuf $((col-1)) >&2
+    _sel_tput el >&2
+    _sel_tput cuu1 >&2
+    _sel_tput cuf $((col-1)) >&2
     return 1
   }
   COMPREPLY=( "${COMPREPLY[@]/#$hs/$ts}" )
@@ -213,7 +213,7 @@ _cdhist_cd() {
   IFS=$'\n'
   COMPREPLY=( "$(_cdpr=2 cdselect "$CDNBDIRS" "$longword" < <(printf "%s\n" "${COMPREPLY[@]}"|sort -u))" )
   IFS=$' \t\n'
-  _tput cuf $((col-1)) >&2
+  _sel_tput cuf $((col-1)) >&2
   [ "${COMPREPLY[0]}" ] && {
     COMPREPLY[0]="${COMPREPLY[0]/#$ts/$hs}"
     COMPREPLY[0]="${COMPREPLY[0]//\/\//\/}"
@@ -265,7 +265,7 @@ function locatedir {
 }
 
 function cdlocate {
-  [ "$_cdpr" = 1 ] && _tput el >&2
+  [ "$_cdpr" = 1 ] && _sel_tput el >&2
   cdselect -1 < <(locatedir "$@")
 }
 
