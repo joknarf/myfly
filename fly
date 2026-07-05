@@ -167,7 +167,7 @@ function _fly_hist_list {
 
 function _fly_hist_del {
     _fly_hist_init || return
-    typeset params="${1//$'\''/$'\'\''}"
+    typeset q=$'\'' params="${1//$q/$q$q}"
     "$_fly_sqlite" "$FLY_HISTFILE" "DELETE FROM flyto WHERE params='$params'" 2>/dev/null
 }
 
