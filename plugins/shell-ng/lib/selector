@@ -484,8 +484,6 @@ _domenu()
     esac
   done
   printf "\e[?7h" #wrap
-  _tput ed
-  _tput cnorm
 }
 
 function selector
@@ -564,9 +562,8 @@ function selector
     [ -t 0 ] || exec </dev/tty
     [ "$__sel_lc" ] && LC_ALL="$__sel_lc" _domenu >&2 || _domenu >&2
   }
+  _sel_tty_restore
   unset break
-  $tty_init && $_sel_stty "$_stty_ori" </dev/tty 2>/dev/null
-  trap - INT TERM
   selected="${selected%%$'\t'*}"
   [ "$selected" ] || return 1
   $quiet || printf "%s" "$selected"
