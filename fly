@@ -177,7 +177,6 @@ function _fly_hist {
 
 _fly_hist_key() {
     # F8 Ctl-D Del
-echo $item >&2
     case "$1" in
         '[19~'|$'\x04'|'[3~') _fly_hist_del "${item%%$'\t'*}";;
     esac
