@@ -86,12 +86,13 @@ $0=="" { print_ls(); print ""; next }
   if (/\x1b\[0?1m/) missing=1; else missing=0
   gsub(/^ +|\x1b\[0?1?[mK]/, "") # leading spaces/ANSI codes
 }
-{
+NF>7{
   c=1
   if (flag_i) inum=$(c++)
   if (flag_s) sizeb=$(c++)
   perms=$(c++); links=$(c++); owner=$(c++); group=$(c++);
   if (flag_Z) ctx=$(c++)
+  else while(c<NF && $c !~ /^[0-9]+,*$/) group=group" "$(c++)
   type=substr(perms,1,1)
   if (type=="c" || type=="b") size=$(c++)" "$(c++)
   else size=$(c++)
