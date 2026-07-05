@@ -1,5 +1,5 @@
 [ "$1" ] && _fly_p="/$1" || _fly_p=""
-_fly_shell="${FLY_SHELL##*/}"
+_fly_shell="${FLY_SHELL##*[/\\]}"
 set --
 [ -r "$FLY_HOME/.fly.d/.flyrc" ] && . "$FLY_HOME/.fly.d/.flyrc"
 [ -r "$FLY_HOME/.fly.d/.${_fly_shell}rc" ] && . "$FLY_HOME/.fly.d/.${_fly_shell}rc"
