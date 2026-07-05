@@ -176,7 +176,6 @@ function _fly_hist {
 }
 
 _fly_hist_key() {
-    typeset item="${_aitems[$_nsel]}"
     # F8 Ctl-D Del
     case "$1" in
         '[19~'|$'\x04'|'[3~') _fly_hist_del "${item%%$'\t'*}";;
