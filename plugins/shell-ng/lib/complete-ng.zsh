@@ -261,11 +261,11 @@ _complete_ng_selector() {
 }
 
 _complete-ng_key() {
-  local k="$1" item="${_aitems[$_nsel]}"
+  local k="$1"
   case "$k" in
     '[19~'|$'\x04'|'[3~') # F8 Ctl-D Del
       [[ $_COMPLETE_NG_CONTEXT = *:_fly,ssh* ]] && COMP_DELFUNC=_fly_hist_del
-      [ "$COMP_DELFUNC" ] && $COMP_DELFUNC "${item%%$'\t'*}"
+      [ "$COMP_DELFUNC" ] && $COMP_DELFUNC "$item"
     ;;
   esac
   return 2
