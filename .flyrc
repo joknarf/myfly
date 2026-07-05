@@ -28,6 +28,8 @@ HISTCONTROL=ignorespace
 HISTFILESIZE=10000
 HISTSIZE=10000
 
+export MSYS=winsymlinks:nativestrict
+
 alias to='fsshb'
 
 export DONT_PROMPT_WSL_INSTALL=1
@@ -97,8 +99,8 @@ CDINITDIRS="/usr/lib/systemd/system
 
 # nerdp
 ps1_display=nerdicons
-ps1_info="ps1_osinfo"
-ps1_info_vars="{FLY_SHELL##*/}"
+ps1_info='ps1_osinfo'
+ps1_info_vars='{FLY_SHELL##*[/\\\\]}'
 #ps1_user_char=" •"
 #ps1_root_char=" ▲" #◆ ► ● ⚫ ⚪ ▲ ➽ ➤ ✪ ✇ ►◄⏩ ✨ ♦ ◙ ⵔ ✚ ⛯ ➕ ♯ ⛛ ✮ ✱ ⵙ ⵔ ★
 
