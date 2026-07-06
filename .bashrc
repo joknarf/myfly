@@ -1,9 +1,9 @@
 #echo "joknarf .flyrc.bash"
-shopt -s histappend
+shopt -s histappend lithist
 
 histappend() {
-    history 1|awk 'END{exit(NR!=1)}' && history -a && history -n
-    printf '\e[?1h' >&2 #Moba shift arrow
+   printf '\e[?1h' >&2 #Moba shift arrow
+   history -a;history -n
 }
 unalias resize 2>/dev/null
 type -p resize >/dev/null 2>&1 || resize() {
@@ -33,4 +33,5 @@ unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
 touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
+HISTTIMEFORMAT='%s '
 :
