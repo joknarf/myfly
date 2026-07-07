@@ -303,7 +303,7 @@ _sel_view_file() {
   [[ $item = $type || ${#type} -gt 4 ]] && type=:sh || type=''
   [ "$archive" ] && {
     _force_nsel=$_nsel
-    exec <&1
+    exec </dev/tty
     LESSQUIET=1 LESSOPEN="$_sel_lessopen" LESS='-+X -RSc' less "$archive:$item$type" 2>/dev/null || return 3
     _sel_tput civis
     return 0
