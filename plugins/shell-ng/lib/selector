@@ -266,18 +266,22 @@ _sel_readkey()
 {
   typeset o=${1:-n} k 
   IFS= read -rs"$o"1 key
-  _sel_keycode
-  ((k>0 && k<27)) && key="ctrl-${_sel_letters:$((k-1)):1}" && return
-  [ "$key" = $'\x1b' ] && key="" && while :; do
-    k=""
-    LC_NUMERIC=C read -rs"$o"1 -t $_sel_tmout k 2>/dev/null # LC_NUMERIC=C for old ksh
-    [ ! "$k" ] && key=${key:-$'\x1b'} && break
-    key+="$k"
-    case "$key" in
-      '['[A-H]|'['*'~'|O[A-S]|'[1;2'[ABCDP-S]|$'\x1b') break;;
-      [a-z]) [[ $key = [[:upper:]] ]] && continue;key="alt-$key";break;;
-    esac
-  done
+  if [ "$key" = $'\x1b' ] ;then
+    key=""
+    while :; do
+      k=""
+      LC_NUMERIC=C read -rs"$o"1 -t $_sel_tmout k 2>/dev/null # LC_NUMERIC=C for old ksh
+      [ ! "$k" ] && key=${key:-$'\x1b'} && break
+      key+="$k"
+      case "$key" in
+        '['[A-H]|'['*'~'|O[A-S]|'[1;2'[ABCDP-S]|$'\x1b') break;;
+        [a-z]) [[ $key = [[:upper:]] ]] && continue;key="alt-$key";break;;
+      esac
+    done
+  else
+    _sel_keycode
+    ((k>0 && k<27)) && key="ctrl-${_sel_letters:$((k-1)):1}"
+  fi
 }
 
 _sel_item_expand() {
