@@ -13,8 +13,7 @@ _arrayread() {
 }
 
 _complete-ng_key() {
-  local k="$1"
-  case "$k" in
+  case "$key" in
     '[19~'|$'\x04'|'[3~') # F8 Ctl-D Del
       [ "$COMP_DELFUNC" ] && $COMP_DELFUNC "$item"
     ;;

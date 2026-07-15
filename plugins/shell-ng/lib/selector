@@ -374,10 +374,10 @@ _sel_dirbrowse() {
 }
 
 _sel_file_keys() {
-  typeset k="$1" ritem=$item
+  typeset ritem=$item
 
   [ "$archive" ] && _sel_item_arch || _sel_item_expand
-  case "$k" in
+  case "$key" in
     ctrl-i) # tab
       [ "$archive" ] && {
         selected="$_sel_lesspipe $(printf %q "$archive:$item")";
@@ -465,8 +465,8 @@ _sel_domenu()
   do
     _sel_readkey $o #$key
     e=2
-    [ "$_sel_option" ] && { _sel_file_keys "$key" ; e=$?; }
-    [ "$e" = 2 ] && [ "$_keyfunc" ] && { $_keyfunc "$key"; e=$?; }
+    [ "$_sel_option" ] && { _sel_file_keys "$key"; e=$?; }
+    [ "$e" = 2 ] && [ "$_keyfunc" ] && { $_keyfunc; e=$?; }
     # 0: already managed / 1: managed exit / 2: default / 3: skip default
     case "$e" in
       0)
