@@ -8,7 +8,7 @@
 : "${SELECTOR_LINK_ICON:=}"
 : "${SELECTOR_ARCH_ICON:=}"
 : "${SELECTOR_MISS_ICON:=}"
-: "${SELECTOR_CASEI:=false}"
+: "${SELECTOR_CASEI:=0}"
 : "${SELECTOR_POWERLINE:=y}"
 : "${SELECTOR_COL_PROMPT:=30;90;180}" # blue
 : "${SELECTOR_COL_TEXT:=255;255;255}" # white
@@ -81,7 +81,7 @@ _sel_probe_smam() {
   IFS= read -r$o 2 </dev/tty
   IFS='[;' read -r -d R row col </dev/tty
   printf '\e8\e[?7h' >/dev/tty
-  [ "$col" = "$COLUMNS" ] && SEL_SMAM=true || SEL_SMAM=false
+  [ "$col" = "$COLUMNS" ] && SEL_SMAM=1 || SEL_SMAM=0
 }
 
 _sel_tty_init() {
@@ -98,7 +98,7 @@ _sel_tty_init() {
   disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%-*s$fg${SELECTOR_COL_COMSEL}m %s\e[0m"
   disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%-*s$fg${SELECTOR_COL_COMMENT}m %s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
-  $SELECTOR_CASEI && disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
+  ((SELECTOR_CASEI)) && disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
   tty_init=true
 }
 
@@ -143,7 +143,7 @@ _sel_menuprompt()
   _sel_tty_init
   printf "\r"
   [ "$stream" ] && nbi='...'
-  $SEL_SMAM && w=1000 || { s="  $p  $_nsel/$nbi  "; ((w=COLUMNS-${#s})); }
+  ((SEL_SMAM)) && w=1000 || { s="  $p  $_nsel/$nbi  "; ((w=COLUMNS-${#s})); }
   printf "$disp_form" "$p" "$_nsel/$nbi" "${filt:0:$w}"
   _sel_tput el
   printf "\r"
@@ -176,7 +176,7 @@ _sel_showmenu()
   done
   w=${#nbitems}
   [ "$_sel_option" ] && ((maxw+=2))
-  $SEL_SMAM && {
+  ((SEL_SMAM)) && {
     maxiw=1000
     maxcw=1000
   } || {
@@ -242,20 +242,20 @@ _sel_items_filter()
   typeset filt="$1" j=1 i
   [ "$filt" ] && {
     ufilt="$filt"
-    $SELECTOR_CASEI && _sel_upper ufilt
+    ((SELECTOR_CASEI)) && _sel_upper ufilt
     _sel_nbitems
     _nsel=''
     if ((${#filtered[@]}));then
       _sel_init_filter
       for i in "${prev_filtered[@]}";do
         uitem="${_aitems[i]}"
-        $SELECTOR_CASEI && _sel_upper uitem
+        ((SELECTOR_CASEI)) && _sel_upper uitem
         [[ $uitem = *$ufilt* ]] && filtered[j++]=$i
       done
     else
       for ((i=1;i<=nbitems;i++));do
         uitem="${_aitems[i]}"
-        $SELECTOR_CASEI && _sel_upper uitem
+        ((SELECTOR_CASEI)) && _sel_upper uitem
         [[ $uitem = *$ufilt* ]] && filtered[j++]=$i
       done
     fi
@@ -546,12 +546,12 @@ _sel_domenu()
         _maxlines=''
         _sel_showmenu;;
       alt-i)
-        $SELECTOR_CASEI && {
+        ((SELECTOR_CASEI)) && {
           disp_form="${disp_form//$SELECTOR_COL_CASEI/$SELECTOR_COL_TEXT}"
-          SELECTOR_CASEI=false
+          SELECTOR_CASEI=0
         } || {
           disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
-          SELECTOR_CASEI=true
+          SELECTOR_CASEI=1
         }
         filter='';_sel_showmenu
         ;;
@@ -568,7 +568,7 @@ function selector
   typeset wfg="$fg${SELECTOR_COL_TEXT}m"
   typeset _items _aitems _maxlines _autofilter _keyfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet shift stream _a filtered prev_filtered depth=1 tty_init=false _stty_ori i j lines cur item ritem itemfile uitem ufilt
   [ "$ZSH_VERSION" ] || _a='_'
-  [ "$SELECTOR_CASEI" = true ] || SELECTOR_CASEI=false
+  ((SELECTOR_CASEI)) || SELECTOR_CASEI=0
   prompt='select'
   selected=''
   _autofilter=y
