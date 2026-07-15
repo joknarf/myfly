@@ -12,7 +12,7 @@ _COMPLETE_NG_SPACE_SEP=$'\v'
 _COMPLETE_NG_NONSPACE=$'\u00ad'
 _COMPLETE_NG_FLAGS=( a k f q Q e n U l 1 2 C )
 _comps[cdpush]=_cd
-: "${COMPLETE_NG_CASEI:=false}"
+: "${COMPLETE_NG_CASEI:=0}"
 
 zmodload zsh/zselect
 zmodload zsh/system
@@ -267,7 +267,7 @@ _complete-ng_key() {
       [[ $_COMPLETE_NG_CONTEXT = *:_fly,ssh* ]] && COMP_DELFUNC=_fly_hist_del
       [ "$COMP_DELFUNC" ] && $COMP_DELFUNC "$item"
     ;;
-    'alt-i') $COMPLETE_NG_CASEI && COMPLETE_NG_CASEI=false || COMPLETE_NG_CASEI=true;;
+    'alt-i') ((COMPLETE_NG_CASEI)) && COMPLETE_NG_CASEI=0 || COMPLETE_NG_CASEI=1;;
   esac
   return 2
 }
