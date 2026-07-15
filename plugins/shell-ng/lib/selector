@@ -27,8 +27,7 @@ read _sel_stty < <(whence gnustty stty)
 read _sel_lesspipe < <(whence lesspipe.sh lesspipe)
 _sel_lesspipe="${_sel_lesspipe##*/}"
 [ "$_sel_lesspipe" ] && _sel_lessopen="|$_sel_lesspipe %s"
-_sel_tmout=0.001
-[ "$KSH_VERSION" ] && _sel_tmout=0.01
+_sel_tmout=0.01
 [[ "$BASH_VERSION" = 3.* ]] && _sel_tmout=1
 _sel_letters='abcdefghijklmnopqrstuvwxyz'
 

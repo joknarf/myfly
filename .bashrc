@@ -3,7 +3,8 @@ shopt -s histappend lithist
 
 histappend() {
    printf '\e[?1h' >&2 #Moba shift arrow
-   history -a;history -n
+   history -a;
+   [[ $(history 1) = *$'\n'* ]] && history -r || history -n
 }
 unalias resize 2>/dev/null
 type -p resize >/dev/null 2>&1 || resize() {
