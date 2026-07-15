@@ -19,7 +19,7 @@ _parse_hist() {
 } 
 
 _parse_hist() {
-  local rec
+  local rec gr="$1"
   declare -A dup
   while IFS= read -r -d $'\t' rec; do
     ((${#rec})) || continue
