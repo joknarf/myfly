@@ -553,7 +553,7 @@ _sel_domenu()
           disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
           SELECTOR_CASEI=true
         }
-        _sel_showmenu
+        filter='';_sel_showmenu
         ;;
       *) break;
     esac

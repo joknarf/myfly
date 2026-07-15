@@ -18,6 +18,7 @@ _complete-ng_key() {
     '[19~'|$'\x04'|'[3~') # F8 Ctl-D Del
       [ "$COMP_DELFUNC" ] && $COMP_DELFUNC "$item"
     ;;
+    'alt-i') $COMPLETE_NG_CASEI && COMPLETE_NG_CASEI=false || COMPLETE_NG_CASEI=true;;
   esac
   return 2
 }
