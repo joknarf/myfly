@@ -19,6 +19,7 @@
 : "${SELECTOR_COL_SELECTED:=42;221;244}" # light cyan
 : "${SELECTOR_COL_COMMENT:=168;110;2}" #
 : "${SELECTOR_COL_COMSEL:=222;203;49}" #
+: "${SELECTOR_COL_CASEI:=255;255;100}" # IGNORECASE
 
 [ "$SELECTOR_USE_TPUT" ] && alias _sel_tput=tput
 command -v whence >/dev/null || whence() { type -p "$@"; }
@@ -97,6 +98,7 @@ _sel_tty_init() {
   disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%-*s$fg${SELECTOR_COL_COMSEL}m %s\e[0m"
   disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%-*s$fg${SELECTOR_COL_COMMENT}m %s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
+  $SELECTOR_CASEI && disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
   tty_init=true
 }
 
@@ -266,22 +268,26 @@ _sel_readkey()
 {
   typeset o=${1:-n} k 
   IFS= read -rs"$o"1 key
-  if [ "$key" = $'\x1b' ] ;then
-    key=""
-    while :; do
-      k=""
-      LC_NUMERIC=C read -rs"$o"1 -t $_sel_tmout k 2>/dev/null # LC_NUMERIC=C for old ksh
-      [ ! "$k" ] && key=${key:-$'\x1b'} && break
-      key+="$k"
-      case "$key" in
-        '['[A-H]|'['*'~'|O[A-S]|'[1;2'[ABCDP-S]|$'\x1b') break;;
-        [a-z]) [[ $key = [[:upper:]] ]] && continue;key="alt-$key";break;;
-      esac
-    done
-  else
-    _sel_keycode
-    ((k>0 && k<27)) && key="ctrl-${_sel_letters:$((k-1)):1}"
-  fi
+  case "$key" in
+    $'\x1b')
+      key=""
+      while :; do
+        k=""
+        LC_NUMERIC=C read -rs"$o"1 -t $_sel_tmout k 2>/dev/null # LC_NUMERIC=C for old ksh
+        [ ! "$k" ] && key=${key:-$'\x1b'} && break
+        key+="$k"
+        case "$key" in
+          '['[A-H]|'['*'~'|O[A-S]|'[1;2'[ABCDP-S]|$'\x1b') break;;
+          [a-z]) [[ $key = [[:upper:]] ]] && continue;key="alt-$key";break;;
+        esac
+      done
+    ;;
+    [[:graph:]]|' ') return;;
+    *)
+      _sel_keycode
+      ((k>0 && k<27)) && key="ctrl-${_sel_letters:$((k-1)):1}"
+    ;;
+  esac
 }
 
 _sel_item_expand() {
@@ -509,7 +515,7 @@ _sel_domenu()
         ((nbitems)) || break
         _sel_showmenu "$_nsel"
       ;;
-      $'\x7f'|$'\x08') #backspace
+      $'\x7f'|'ctrl-h') #backspace
         filter="${filter%?}"
         _sel_init_filter
         _nsel=''
@@ -518,7 +524,7 @@ _sel_domenu()
         ;;
       $'\xf8') #meta (macos)
         break;;
-      [[:graph:]]|" ") #text [a-zA-Z0-9/_?*\(\)\ .-])
+      [[:graph:]]|' ') #text [a-zA-Z0-9/_?*\(\)\ .-])
         filter+="$key"
         [ "$_autofilter" = y ] && {
           _sel_items_filter "$filter"
@@ -540,7 +546,15 @@ _sel_domenu()
         _maxlines=''
         _sel_showmenu;;
       alt-i)
-        $SELECTOR_CASEI && SELECTOR_CASEI=false || SELECTOR_CASEI=true;;
+        $SELECTOR_CASEI && {
+          disp_form="${disp_form//$SELECTOR_COL_CASEI/$SELECTOR_COL_TEXT}"
+          SELECTOR_CASEI=false
+        } || {
+          disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
+          SELECTOR_CASEI=true
+        }
+        _sel_showmenu
+        ;;
       *) break;
     esac
   done
