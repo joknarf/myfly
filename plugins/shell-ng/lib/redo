@@ -18,7 +18,7 @@ _parse_hist() {
   ' RS='\t' ret='↲ ' gr="$1" 2>/dev/null
 } 
 
-_parse_hist() {
+[[ $OS = Windows* ]] && _parse_hist() {
   local rec gr="$1"
   declare -A dup
   while IFS= read -r -d $'\t' rec; do
