@@ -30,6 +30,7 @@ _sel_lesspipe="${_sel_lesspipe##*/}"
 _sel_tmout=0.01
 [[ "$BASH_VERSION" = 3.* ]] && _sel_tmout=1
 _sel_letters='abcdefghijklmnopqrstuvwxyz'
+_sel_stty_opt=()
 
 case "$BASH_VERSION$KSH_VERSION$ZSH_VERSION" in
   "$BASH_VERSION") _sel_upper() { eval $1='"${'$1'^^}"'; }
@@ -40,6 +41,7 @@ case "$BASH_VERSION$KSH_VERSION$ZSH_VERSION" in
   ;;
   "$KSH_VERSION") _sel_upper() { eval typeset -u u='"$'$1'"; '$1='"$u"'; }
     _sel_keycode() { k=$(printf '%d' "'$key"); }
+    _sel_stty_opt=(-echo)
   ;;
 esac
 
@@ -86,7 +88,7 @@ _sel_probe_smam() {
 _sel_tty_init() {
   $tty_init && return
   _stty_ori="$($_sel_stty -g </dev/tty 2>/dev/null)"
-  $_sel_stty intr '' -echo </dev/tty 2>/dev/null
+  $_sel_stty intr '' "${_sel_stty_opt[@]}" </dev/tty 2>/dev/null
   [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
   _sel_tput civis
   [ "$SEL_SMAM" ] || _sel_probe_smam
