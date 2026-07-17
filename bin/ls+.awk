@@ -92,7 +92,7 @@ NF>7{
   if (flag_s) sizeb=$(c++)
   perms=$(c++); links=$(c++); owner=$(c++); group=$(c++);
   if (flag_Z) ctx=$(c++)
-  else while(c<NF && $c !~ /^[0-9]+,*$/) group=group" "$(c++)
+  else while(c<NF && $c !~ /^[0-9]/) group=group" "$(c++)
   type=substr(perms,1,1)
   if (type=="c" || type=="b") size=$(c++)" "$(c++)
   else size=$(c++)
