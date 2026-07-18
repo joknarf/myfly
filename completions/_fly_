@@ -1,7 +1,7 @@
 #compdef _fly
 function _fly_ {
   local -a commands containers
-  local COMPADD_ARGS=(-Q)
+  COMPADD_ARGS=(-Q)
   case "${words[2]}" in
     ssh)
       commands=(
