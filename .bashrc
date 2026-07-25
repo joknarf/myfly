@@ -1,10 +1,14 @@
 #echo "joknarf .flyrc.bash"
 shopt -s histappend lithist
-
 histappend() {
    printf '\e[?1h' >&2 #Moba shift arrow
    history -a;
    [[ $(history 1) = *$'\n'* ]] && history -r || history -n
+}
+((BASH_VERSINFO[0]<5)) && histappend() {
+   printf '\e[?1h' >&2 #Moba shift arrow
+   [[ $(history 1) = *$'\n'* ]] && history -a /dev/null && return
+   history -a; history -n
 }
 unalias resize 2>/dev/null
 type -p resize >/dev/null 2>&1 || resize() {
