@@ -38,6 +38,5 @@ unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
 touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
-# bash 4- history totally bugged
-((${BASH_VERSION%%.*}>4)) && HISTTIMEFORMAT='%s ' || unset HISTTIMEFORMAT
+HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
 :
