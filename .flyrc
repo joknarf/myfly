@@ -25,7 +25,7 @@ export INPUTRC="$FLY_HOME/.fly.d/.inputrc"
 
 HISTCONTROL=ignorespace
 #HISTIGNORE="cd:cd *:history:ls:l:pwd:df:df -k:kill *:top:clear"
-HISTFILESIZE=10000
+HISTFILESIZE=10000000
 HISTSIZE=10000
 
 export MSYS=winsymlinks:nativestrict
