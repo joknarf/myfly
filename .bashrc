@@ -1,12 +1,13 @@
 #echo "joknarf .flyrc.bash"
 shopt -s histappend lithist
+HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
+#printf '\e[?1h' >&2 #Moba shift arrow can cause stty -echo ^C
 histappend() {
-   printf '\e[?1h' >&2 #Moba shift arrow
    history -a;
    [[ $(history 1) = *$'\n'* ]] && history -r || history -n
 }
 ((BASH_VERSINFO[0]<5)) && histappend() {
-   printf '\e[?1h' >&2 #Moba shift arrow
+   unset HISTTIMEFORMAT
    [[ $(history 1) = *$'\n'* ]] && history -a /dev/null && return
    history -a; history -n
 }
@@ -38,5 +39,4 @@ unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
 touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
-HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
 :
