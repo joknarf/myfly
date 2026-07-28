@@ -5,13 +5,11 @@ HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
 histappend() {
    history -a;
    [[ $(history 1) = *$'\n'* ]] && history -r || history -n
-   stty echo
 }
 ((BASH_VERSINFO[0]<5)) && histappend() {
    unset HISTTIMEFORMAT
    [[ $(history 1) = *$'\n'* ]] && history -a /dev/null && return
    history -a; history -n
-   stty echo
 }
 unalias resize 2>/dev/null
 type -p resize >/dev/null 2>&1 || resize() {
