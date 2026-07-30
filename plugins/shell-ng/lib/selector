@@ -123,7 +123,7 @@ _sel_load_items() {
     _aitems=();set -A _aitems 2>/dev/null
     while IFS=$'\n' read -r it;do
         ((${#it})) || continue
-        ((nb == 2)) && _sel_menuprompt
+        ((nb == 2)) && _sel_tty_init && _sel_menuprompt
         ((nb == _maxlines)) && _sel_showmenu
         _aitems[nb++]="$it"
         ((sec=SECONDS))
@@ -144,7 +144,6 @@ _sel_load_items() {
 _sel_menuprompt()
 {
   typeset p="${1:-$prompt}" filt="${filter:-$item}" s w nbi=$nbitems
-  _sel_tty_init
   printf "\r"
   [ "$stream" ] && nbi='...'
   ((SEL_SMAM)) && w=1000 || { s="  $p  $_nsel/$nbi  "; ((w=COLUMNS-${#s})); }
@@ -455,6 +454,7 @@ _sel_domenu()
   _nsel=1
   ((nbitems)) || return 1
   ((nbitems<_maxlines)) && _sel_showmenu
+  _sel_tty_init
   while ((break==0))
   do
     selected=''
