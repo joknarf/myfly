@@ -22,7 +22,7 @@ dfbar() {
   typeset dfopt=( -T -x fuse.snapfuse -x overlay -x rootfs -x devtmpfs -x efivarfs ) all df="${df:-df}"
   [[ " $*" = *\ -*a || $box = *box* ]] && dfopt=( -T ) && all=1;
   set -o pipefail
-  LANGUAGE=C LANG=C $df -P "${dfopt[@]}" "$@" | awk -v sym1="$DFBAR_BEGIN" -v sym2="$DFBAR_END" -v all=$all -v col="$DFBAR_COLORS" '
+  LANGUAGE= LANG=C $df -P "${dfopt[@]}" "$@" | awk -v sym1="$DFBAR_BEGIN" -v sym2="$DFBAR_END" -v all=$all -v col="$DFBAR_COLORS" '
   BEGIN {
     barlen=10
     esc="\033["
