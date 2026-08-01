@@ -149,3 +149,4 @@ export BAT_THEME="Visual Studio Dark+"
 touch ~/.cd_history 2>/dev/null || CDHISTFILE=/tmp/.cd_history.$USER
 alias flyinst='cd ~/work/flypack;git pull origin main;. ./fly.pak install'
 unset LANGUAGE
+export MSYS=winsymlinks:native
