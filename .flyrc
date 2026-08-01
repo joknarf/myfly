@@ -73,15 +73,15 @@ alias dfh='dfb -h'
 
 # lsicon
 export LSI_HIDE_TREE='__pycache__|venv|.venv|.git'
-unalias ls lss l ll lh llh t lt llt 2>/dev/null
+unalias ls lss l ll lh llh llr t lt llt 2>/dev/null
 alias ls='ls+'
 alias t='ls -T'
 alias lss='ls --color --group-directories-first -X'
 alias l='ls -l --color'
 alias la='l -a'
 alias lt='l -T'
-alias ll='lss -l'
-alias lla='ll -a'
+alias ll='lss -al'
+alias llr='ll -rt'
 alias lh='l -Srh'
 alias llh='ll -h'
 alias llt='lt --group-directories-first'
