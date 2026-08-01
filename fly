@@ -60,7 +60,7 @@ function _fly_sudo
     [ "$user" = '-' ] || sopt=(-u "$user")
     [ "$1" ] && shift
     \cd /
-    sudo "${sopt[@]}" '/bin/sh' <<<"$(_fly_pkg_warp "$@")"; e=$?
+    _fly_pkg_warp "$@" |sudo "${sopt[@]}" '/bin/sh'; e=$?
     \cd "$OLDPWD"
     return $e
 }
