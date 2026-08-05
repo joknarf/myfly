@@ -43,7 +43,9 @@ unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
 touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
-[ -f $FLY_HOME/.fly.psredraw.so ] || cp $FLY_HOME/.fly.d/lib/psredraw.so $FLY_HOME/.fly.psredraw.so
-enable -f $FLY_HOME/.fly.psredraw.so psredraw && trap 'psredraw redraw' WINCH
+[ -f ~/.fly.psredraw.so ] && psredraw=~/.fly.psredraw.so || psredraw=$FLY_HOME/.fly.psredraw.so
+[ -f "$psredraw" ] || cp $FLY_HOME/.fly.d/lib/psredraw.so "$psredraw"
+enable -f "$psredraw" psredraw && trap 'psredraw redraw' WINCH
+unset psredraw
 :
 
