@@ -1,4 +1,8 @@
 #echo "joknarf .flyrc.bash"
+export BASH_LOADABLES_PATH=/usr/lib/bash
+for i in sleep id uname rm rmdir push mktemp mkdir mkfifo stat tee ln dirname basename head;do
+   [ -f /usr/lib/bash/$i ] && enable -f /usr/lib/bash/$i $i
+done
 shopt -s histappend lithist
 HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
 #printf '\e[?1h' >&2 #Moba shift arrow => use Force App Key
@@ -39,4 +43,8 @@ unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
 touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
+[ -f $FLY_HOME/.fly.psredraw.so ] || cp $FLY_HOME/.fly.d/lib/psredraw.so $FLY_HOME/.fly.psredraw.so
+enable -f $FLY_HOME/.fly.psredraw.so psredraw
+trap 'psredraw redraw' WINCH
 :
+
