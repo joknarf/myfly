@@ -5,15 +5,17 @@ for i in sleep id uname rm rmdir push mktemp mkdir mkfifo stat tee ln dirname ba
 done
 shopt -s histappend lithist
 HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
-#printf '\e[?1h' >&2 #Moba shift arrow => use Force App Key
+alias forceappkey='printf "\e[?1h" >&2' # Force arrow App Key (Moba bug)
 histappend() {
    history -a;
    [[ $(history 1) = *$'\n'* ]] && history -r || history -n
+   forceappkey
 }
 ((BASH_VERSINFO[0]<5)) && histappend() {
    unset HISTTIMEFORMAT
    [[ $(history 1) = *$'\n'* ]] && history -a /dev/null && return
    history -a; history -n
+   forceappkey
 }
 unalias resize 2>/dev/null
 type -p resize >/dev/null 2>&1 || resize() {
