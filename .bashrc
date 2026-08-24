@@ -48,7 +48,7 @@ complete -F _flyto to
 touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
 [ -f ~/.fly.psredraw ] && psredraw=~/.fly.psredraw || psredraw=$FLY_HOME/.fly.psredraw
 [ -f "$psredraw" ] || cp $FLY_HOME/.fly.d/lib/psredraw.so "$psredraw"
-((${BASH_VERSINFO[0]}>3)) && enable -f "$psredraw" psredraw && trap 'psredraw redraw' WINCH
+((${BASH_VERSINFO[0]}>3)) && enable -f "$psredraw" psredraw >/dev/null 2>&1 && trap 'psredraw redraw' WINCH
 unset psredraw
 :
 
