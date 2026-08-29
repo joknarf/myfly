@@ -90,8 +90,7 @@ _sel_probe_smam() {
 
 _sel_tty_init() {
   ((tty_init)) && return
-  trap_winch="$(trap -p WINCH)"
-  trap - WINCH
+  [ "$BASH" ] && { trap_winch="$(trap -p WINCH)";trap - WINCH; }
   _stty_ori="$($_sel_stty -g </dev/tty 2>/dev/null)"
   : $("$_sel_stty" intr '' -echo </dev/tty 2>/dev/null)
   [ "$LINES" ] || read -r LINES COLUMNS < <($_sel_stty size </dev/tty)
