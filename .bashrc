@@ -1,7 +1,7 @@
 #echo "joknarf .flyrc.bash"
 stty -ixon
 export BASH_LOADABLES_PATH=/usr/lib/bash
-for i in sleep id uname rm rmdir push mktemp mkdir mkfifo stat tee ln dirname basename head;do
+for i in sleep id uname rm rmdir push mktemp mkdir mkfifo tee ln dirname basename head;do
    [ -f /usr/lib/bash/$i ] && enable -f /usr/lib/bash/$i $i
 done
 shopt -s histappend lithist
