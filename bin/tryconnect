@@ -1,13 +1,16 @@
 #!/bin/bash
 
 tryconnect() {
-  typeset ip=$1 port=$2 r
-  timeout 1 bash -c "cat < /dev/null > /dev/tcp/$ip/$port"
-  r=$?
-  [ $r = 0 ] && echo connected && return 0
-  [ $r = 124 ] && echo timeout && return 1
-  echo "refused/failed"
-  return $r
+  typeset ip=$1 port=$2 e r null
+  [[ $ip = *:* ]] && port=${ip#*:} && ip=${ip%:*}
+  [[ $ip =~ ^[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$ ]] || read ip null < <(getent ahostsv4 "$ip")
+  echo "try connect to $ip:$port"
+  r=$(timeout 3 bash -c ": </dev/tcp/$ip/$port" 2>&1)
+  e=$?
+  [ $e = 0 ] && echo 'Connected' && return 0
+  [ $e = 124 ] && echo 'Connection timeout' && return 1
+  echo "${r##*: }"
+  return $e
 }
 
 tryconnect "$@"
