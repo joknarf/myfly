@@ -214,7 +214,8 @@ function _fly_ssh
         done < <(ssh -G "${ssh_args[@]}" "${ssh_argc[@]}" 2>/dev/null)
         [ "$halias" ] && aliasupd=", alias='$halias'"
         _fly_sql <<<"$_fly_sqltmout INSERT OR IGNORE INTO flyto (params) VALUES ('$params');
-        UPDATE flyto set begin=datetime('now','localtime'), sudo_user='$SUDO_USER', hostname='$hostname', user='$user' $aliasupd where params='$params';" || _fly_hist_migr
+          UPDATE flyto SET begin=datetime('now','localtime'), sudo_user='$SUDO_USER', hostname='$hostname', user='$user' $aliasupd
+          WHERE params='$params';" || _fly_hist_migr
     }
     _fly_hist_end()
     {
