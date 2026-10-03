@@ -13,7 +13,7 @@ not set -q FLY_TMPDIR && set -x FLY_TMPDIR /tmp
 not set -q _fly_uuid && set -x _fly_uuid (cat "$FLY_HOME/.fly.d/.flyuuid" 2>/dev/null; or uuidgen)
 set -x _fly_lib $FLY_HOME/.fly.d/.fly.lib
 set -x FLY_SHELL fish 
-set -x _fly_fish true
+set -x _fly_fish 1
 
 test -n "$_fly_lock" && trap 'flock -u 4 2>/dev/null' TERM
 
