@@ -4,7 +4,7 @@ _pgtree()
    case "${COMP_WORDS[COMP_CWORD-1]}" in
      -u) COMPREPLY=($(compgen -u -- "${COMP_WORDS[$COMP_CWORD]}"));return 0;;
      -O) 
-        local pso=(lstart %cpu %mem rss tty exe state time wchan)
+        local pso=(stime lstart %cpu %mem rss vsz tty exe state uid sid time wchan)
         [[ "$word" = *,* ]] && p="${word%,*},"
         pso=("${pso[@]/#/$p}")
         COMPREPLY=( $(compgen -W "${pso[*]}" -- $word) )
