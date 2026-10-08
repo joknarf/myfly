@@ -139,16 +139,15 @@ function _fly_hist_init
         ' 2>/dev/null
     ) || return 1
 }
+function _fly_sql_do
+{
+    "$_fly_sqlite" -init <(echo .timeout 2000) "$@" "$FLY_HISTFILE" 2>/dev/null
+}
 
 function _fly_sql
 {
     _fly_hist_init || return 1
-    "$_fly_sqlite" -init <(echo .timeout 2000) "$@" "$FLY_HISTFILE" 2>/dev/null
-}
-
-function _fly_hist_migr
-{
-   _fly_sql <<<'ALTER TABLE flyto add alias'
+    _fly_sql_do "$@" || _fly_sql_do <<<'ALTER TABLE flyto ADD alias' # migration
 }
 
 function _fly_sql_parse
@@ -167,7 +166,7 @@ function _fly_sql_parse
 
 function _fly_hist_list {
     typeset filter="$1";shift
-    _fly_sql "$@" <<<"SELECT params, alias, strftime('%Y-%m-%d %H:%M',begin) AS start, user||'@'||hostname AS host, exit_code AS e, sudo_user AS s FROM flyto WHERE params LIKE '$filter%' OR alias LIKE '$filter%' ORDER BY begin DESC;" ||_fly_hist_migr
+    _fly_sql "$@" <<<"SELECT params, alias, strftime('%Y-%m-%d %H:%M',begin) AS start, user||'@'||hostname AS host, exit_code AS e, sudo_user AS s FROM flyto WHERE params LIKE '$filter%' OR alias LIKE '$filter%' ORDER BY begin DESC;"
 }
 
 function _fly_hist_del {
@@ -214,7 +213,7 @@ function _fly_ssh
         [ "$halias" ] && aliasupd=", alias='$halias'"
         _fly_sql <<<"INSERT OR IGNORE INTO flyto (params) VALUES ('$params');
           UPDATE flyto SET begin=datetime('now','localtime'), sudo_user='$SUDO_USER', hostname='$hostname', user='$user' $aliasupd
-          WHERE params='$params';" || _fly_hist_migr
+          WHERE params='$params';"
     }
     _fly_hist_end()
     {
