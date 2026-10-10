@@ -1,7 +1,7 @@
 _pgt_reply() {
   local IFS=$'\n'
   set -f
-  COMPREPLY=( $(cat $1) )
+  [ "$COMPLETE_NG_CASEI" ] && COMPREPLY=( $(cat $1) ) || COMPREPLY=( $(sed -e 's/\t.*//' $1) )
   set +f
 }
 _pgtree()
@@ -20,7 +20,7 @@ _pgtree()
    done
    case "${COMP_WORDS[COMP_CWORD-1]}" in
      -u) _pgt_reply <(ps ax -o user=);return 0;;
-     -[Cw]) COMPREPLY=( yes no);return 0;;
+     -[Cw]) COMPREPLY=(yes no);return 0;;
      -t) compopt -o nospace
          _pgt_reply <(who |awk '{ printf("%s\t%-10s %s %s %s\n", $2,$1,$3,$4,$5) }')
          return 0
