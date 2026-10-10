@@ -6,7 +6,11 @@ _pgt_reply() {
 }
 _pgtree()
 {
-   local word="${COMP_WORDS[COMP_CWORD]}" pgopt='-l' i reply p n=$'\n' IFS="$IFS"
+   local word="${COMP_WORDS[COMP_CWORD]}" pgopt='-l' i pg p n=$'\n' IFS="$IFS"
+   [[ $word =  -* ]] && {
+     _pgt_reply <(pgtree -h |awk -F ' : ' '$1 ~ /^ *-/{sub("^ *","");opt=$1;sub(" .*","",opt);print opt"\t"substr($0,length($1)+4)}')
+     return 0
+   }
    for ((i=1;i<COMP_CWORD;i++));do
      case "${COMP_WORDS[i]}" in
        -[uUtgG]) ((i<COMP_CWORD-1)) && pgopt+=" ${COMP_WORDS[i]} ${COMP_WORDS[i+1]}";;
@@ -33,11 +37,8 @@ _pgtree()
    esac
    : ${word:=.}
    compopt -o filenames
-   case "$word" in
-     -*) reply="$(pgtree -h |awk -F ' : ' '$1 ~ /^ *-/{sub("^ *","");opt=$1;sub(" .*","",opt);print opt"\t"substr($0,length($1)+4)}')";;
-     *) reply="$(pgrep $pgopt "$word" |awk '{print substr($0,length($1)+2)}')" ;; 
-   esac
-   _pgt_reply <(sed 's/[][\.*^$(){}?+|]/\\&/g' <<< "$reply")
+   pg="$(pgrep $pgopt "$word")"
+   _pgt_reply <(awk '{print substr($0,length($1)+2)}' <<<"$pg"|sed 's/[][\.*^$(){}?+|]/\\&/g')
    return 0
 }
 complete -F _pgtree pgtree pgt
