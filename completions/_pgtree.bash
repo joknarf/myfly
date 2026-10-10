@@ -11,6 +11,7 @@ _pgtree()
      case "${COMP_WORDS[i]}" in
        -[uUtgG]) ((i<COMP_CWORD-1)) && pgopt+=" ${COMP_WORDS[i]} ${COMP_WORDS[i+1]}";;
        -f) pgopt+=" -af";;
+       --) break;
      esac
    done
    case "${COMP_WORDS[COMP_CWORD-1]}" in
