@@ -15,7 +15,7 @@ _pgtree()
      esac
    done
    case "${COMP_WORDS[COMP_CWORD-1]}" in
-     -u) _pgt_reply <(ps ax -o user=|sort -u);return 0;;
+     -u) _pgt_reply <(ps ax -o user=);return 0;;
      -t) compopt -o nospace
          _pgt_reply <(who |awk '{ printf("%s\t%-10s %s %s %s\n", $2,$1,$3,$4,$5) }')
          return 0
