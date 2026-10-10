@@ -10,7 +10,7 @@ _pgtree()
    for ((i=1;i<COMP_CWORD;i++));do
      case "${COMP_WORDS[i]}" in
        -[uUtgG]) ((i<COMP_CWORD-1)) && pgopt+=" ${COMP_WORDS[i]} ${COMP_WORDS[i+1]}";;
-       -f) pgopt="${pgopt/-l/-af}";;
+       -f) pgopt+=" -af";;
      esac
    done
    case "${COMP_WORDS[COMP_CWORD-1]}" in
@@ -19,7 +19,7 @@ _pgtree()
          _pgt_reply <(who |awk '{ printf("%s\t%-10s %s %s %s\n", $2,$1,$3,$4,$5) }')
          return 0
      ;;
-     -[pP]) _pgt_reply <(pgrep -a $pgopt . |awk '{print $1"\t"substr($0,length($1)+2)}')
+     -[pP]) _pgt_reply <(pgrep -af $pgopt . |awk '{print $1"\t"substr($0,length($1)+2)}')
        return 0
      ;;
      -O) 
