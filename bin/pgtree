@@ -20,11 +20,13 @@ _pgt_initsys() {
     PGT_PSOPT=(ax)
     PGT_PGOPT=''
     PGT_PGA='-a'
+    pgrep -a -P $$ >/dev/null 2>&1
+    (($?==2)) && PGT_PGA=''
     case "$system" in
-        AIX)     PGT_PSOPT=(-e); PGT_STIME="start" ;;
-        Darwin)  PGT_STIME="start";PGT_PGOPT='-a' ;;
-        SunOS)   PGT_PSOPT=(-e); PGT_COMM="fname";PGT_PGA='' ;;
-        CYGWIN*) PGT_PSOPT=(-e) ;;
+        AIX)     PGT_PSOPT=(-e); PGT_STIME="start";;
+        Darwin)  PGT_STIME="start";PGT_PGOPT='-a';;
+        SunOS)   PGT_PSOPT=(-e); PGT_COMM="fname";;
+        CYGWIN*) PGT_PSOPT=(-e);;
     esac
 }
 
@@ -37,7 +39,7 @@ unset PGT_PGOPT PGT_COMM PGT_STIME
 _pgt_reply() {
   local IFS=$'\n'
   set -f
-  [ "$COMPLETE_NG_CASEI" ] && COMPREPLY=( $(cat $1) ) || COMPREPLY=( $(sed -e 's/\t.*//' $1) )
+  [ "$COMPLETE_NG_CASEI" ] && COMPREPLY=( $(sed -e 's/ *$//' -e 's/^ *//' $1) ) || COMPREPLY=( $(sed -e 's/\t.*//' -e 's/ *$//' -e 's/^ *//' $1) )
   set +f
 }
 _pgtree()
