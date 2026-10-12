@@ -80,7 +80,8 @@ _pgtree()
    : ${word:=.}
    compopt -o filenames
    pg="$(pgrep $pgopt "$word")"
-   _pgt_reply <(awk '{sub("^ *","");print substr($0,length($1)+2)}' <<<"$pg"|sed 's/[][\.*^$(){}?+|]/\\&/g')
+   _pgt_reply <(awk '{sub("^ *","");nb[substr($0,length($1)+2)]++}
+      END{ for(i in nb) print i"\t"nb[i]}' <<<"$pg"|sed 's/[][\.*^$(){}?+|]/\\&/g')
    return 0
 }
 complete -F _pgtree pgtree pgt

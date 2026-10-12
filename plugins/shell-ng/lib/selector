@@ -7,7 +7,7 @@
 : "${SELECTOR_FILE_ICON:=}" #  🗎            🗋 🖹   📄
 : "${SELECTOR_LINK_ICON:=}"
 : "${SELECTOR_ARCH_ICON:=}"
-: "${SELECTOR_MISS_ICON:= }" # 
+: "${SELECTOR_MISS_ICON:=•}"
 : "${SELECTOR_CASEI:=0}"
 : "${SELECTOR_POWERLINE:=y}"
 : "${SELECTOR_COL_PROMPT:=30;90;180}" # blue
@@ -100,8 +100,8 @@ _sel_tty_init() {
   : "${_maxlines:=$LINES}"
   ((_maxlines > 2)) || _maxlines=''
   _sel_init_filter
-  disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%-*s$fg${SELECTOR_COL_COMSEL}m %s\e[0m"
-  disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%-*s$fg${SELECTOR_COL_COMMENT}m %s\e[0m"
+  disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%s%-*s$fg${SELECTOR_COL_COMSEL}m %s\e[0m"
+  disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%s%-*s$fg${SELECTOR_COL_COMMENT}m %s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
   ((SELECTOR_CASEI)) && disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
   tty_init=1
@@ -214,9 +214,9 @@ _sel_showmenu()
       icons[j]="$icon"
     }
     if ((_nsel == i)); then
-      printf "$disp_item_sel" $w $i $maxw "${icons[j]}${ritem:0:$maxiw}" "${comment:0:$maxcw}"
+      printf "$disp_item_sel" $w $i "${icons[j]}" $maxw "${ritem:0:$maxiw}" "${comment:0:$maxcw}"
     else
-      printf "$disp_item" $w $i $maxw "${icons[j]}${ritem:0:$maxiw}" "${comment:0:$maxcw}"
+      printf "$disp_item" $w $i "${icons[j]}" $maxw "${ritem:0:$maxiw}" "${comment:0:$maxcw}"
     fi
     _sel_tput el #clear end of line
   done
