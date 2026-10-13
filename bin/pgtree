@@ -61,19 +61,18 @@ _pgtree()
      -u) _pgt_reply <(ps "${PGT_PSOPT[@]}" -o user=);return 0;;
      -[Cw]) COMPREPLY=(yes no);return 0;;
      -r) COMPREPLY=(D R S Z);return 0;;
-     -t) compopt -o nospace
-         _pgt_reply <(who |awk '{ printf("%s\t%-10s %s %s %s\n", $2,$1,$3,$4,$5) }')
+     -t) _pgt_reply <(who |awk '{ printf("%s\t%-10s %s %s %s\n", $2,$1,$3,$4,$5) }')
          return 0
      ;;
      -[pP]) pg="$(pgrep $PGT_PGA -f $pgopt .)"
          _pgt_reply <(awk '{sub("^ *","");print $1"\t"substr($0,length($1)+2)}' <<<"$pg")
          return 0
      ;;
-     -O)
-        local pso=(stime lstart pcpu pmem rss vsz tty exe stat s uid sid time wchan)
+     -O) compopt -o nospace
+        local pso='stime lstart pcpu pmem rss vsz tty exe stat s uid sid time wchan' psopts
         [[ "$word" = *,* ]] && p="${word%,*},"
-        pso=("${pso[@]/#/$p}")
-        COMPREPLY=( $(compgen -W "${pso[*]}" -- $word) )
+        for i in $pso;do [[ ,$p = *,$i,* ]] && continue;psopts+="$p$i ";done
+        COMPREPLY=( $(compgen -W "${psopts}" -- $word) )
         return 0
      ;;
    esac
