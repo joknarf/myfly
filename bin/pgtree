@@ -440,7 +440,7 @@ _pgrep() {
     ' re="$re" IGNORECASE="$icase"
 }
 
-argopt="WRThIckKfxvinoyaA1Cr::p:u:U:g:G:P:s:t:F:O:w:-:"
+argopt="WRThIckKfxvinoyaA1C:r:p:u:U:g:G:P:s:t:F:O:w:-:"
 args="${*}"
 pids=(0)
 PGT_PID='pid'
