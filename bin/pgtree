@@ -58,8 +58,8 @@ _pgtree()
      esac
    done
    case "${COMP_WORDS[COMP_CWORD-1]}" in
-     -u) _pgt_reply <(ps "${PGT_PSOPT[@]}" -o user=);return 0;;
-     -[Cw]) COMPREPLY=(yes no);return 0;;
+     -u) COMPREPLY=( $(compgen -W "$(ps "${PGT_PSOPT[@]}" -o user=)" -- $word) );return 0;;
+     -[Cw]) COMPREPLY=( $(compgen -W "yes no" -- $word) );return 0;;
      -r) COMPREPLY=(D R S Z);return 0;;
      -t) _pgt_reply <(who |awk '{ printf("%s\t%-10s %s %s %s\n", $2,$1,$3,$4,$5) }')
          return 0
