@@ -34,5 +34,5 @@ alias fin='_fly in'
 
 alias flyls='_fly list'
 alias flypack='_fly pack'
-alias cdfly='cd $FLY_HOME/.fly.d'
+alias cdfly='cd "$FLY_HOME/.fly.d"'
 

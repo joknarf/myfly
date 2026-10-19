@@ -30,14 +30,14 @@ test -n "$_fly_share" && trap "flock -n 5 && flock '$_fly_share/.fly.lock' rm -r
 set -e _fly_share
 
 function fly
-   FLY_HOME="$FLY_HOME" bash -c 'args=("$@");. $FLY_HOME/.fly.d/fly "${args[@]}"' _ $argv
+   FLY_HOME="$FLY_HOME" bash -c 'args=("$@");. "$FLY_HOME/.fly.d/fly" "${args[@]}"' _ $argv
 end
 
 function _fly
-   FLY_HOME="$FLY_HOME" bash -c 'args=("$@");. $FLY_HOME/.fly.d/fly;_fly "${args[@]}"' _ $argv
+   FLY_HOME="$FLY_HOME" bash -c 'args=("$@");. "$FLY_HOME/.fly.d/fly";_fly "${args[@]}"' _ $argv
 end
 
-alias fly.fish='. $FLY_HOME/.fly.d/fly.fish'
+alias fly.fish='. "$FLY_HOME/.fly.d/fly.fish"'
 
 . $_fly_lib/aliases
 end # fish cannot return...

@@ -19,7 +19,7 @@ $ fzsh                          # flysh zsh
 $ fsu                           # flyas
 $ fsub                          # flyas with bash
 $ fsuk                          # flyas with ksh
-$ fusz                          # flyas with zsh
+$ fsuz                          # flyas with zsh
 
 $ fssh                          # flyto
 $ fsshb                         # flyto with bash
