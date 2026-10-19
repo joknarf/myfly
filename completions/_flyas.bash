@@ -5,4 +5,4 @@ _flyas()
      *) COMPREPLY=($(compgen -c -- "${COMP_WORDS[$COMP_CWORD]}"));return 0;;
    esac
 }
-complete -F _flyas flyas fsu bsu zsh ksu flyas fsudo fsub fsuz fsuk fsuf
+complete -F _flyas flyas fsu bsu zsu ksu flyas fsudo fsub fsuz fsuk fsuf

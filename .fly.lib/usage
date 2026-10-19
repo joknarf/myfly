@@ -16,10 +16,10 @@ $ fbash                         # flysh bash
 $ fksh                          # flysh ksh
 $ fzsh                          # flysh zsh
 
-$ fsudo                         # flyas
-$ fsudob                        # flyas with bash
-$ fsudok                        # flyas with ksh
-$ fusdoz                        # flyas with zsh
+$ fsu                           # flyas
+$ fsub                          # flyas with bash
+$ fsuk                          # flyas with ksh
+$ fusz                          # flyas with zsh
 
 $ fssh                          # flyto
 $ fsshb                         # flyto with bash
