@@ -1,7 +1,7 @@
 #echo "joknarf .flyrc.bash"
 stty -ixon
 export BASH_LOADABLES_PATH=/usr/lib/bash
-for i in sleep id uname rm rmdir push mktemp mkdir mkfifo tee ln dirname basename;do
+for i in sleep uname rm rmdir push mkdir mkfifo tee ln dirname basename;do
    [ -f /usr/lib/bash/$i ] && enable -f /usr/lib/bash/$i $i
 done
 shopt -s histappend lithist
@@ -45,9 +45,9 @@ bind 'set enable-bracketed-paste off'
 unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
-touch ~/.bash_history 2>/dev/null || HISTFILE=/tmp/.bash_history.$USER
-[ -f ~/.fly.psredraw ] && psredraw=~/.fly.psredraw || psredraw=$FLY_HOME/.fly.psredraw
-[ -f "$psredraw" ] || cp $FLY_HOME/.fly.d/lib/psredraw.so "$psredraw"
+touch ~/.bash_history 2>/dev/null || HISTFILE="/tmp/.bash_history.$USER"
+[ -f ~/.fly.psredraw ] && psredraw=~/.fly.psredraw || psredraw="$FLY_HOME/.fly.psredraw"
+[ -f "$psredraw" ] || cp "$FLY_HOME/.fly.d/lib/psredraw.so" "$psredraw"
 ((${BASH_VERSINFO[0]}>3)) && enable -f "$psredraw" psredraw >/dev/null 2>&1 && trap 'psredraw redraw' WINCH
 unset psredraw
 :

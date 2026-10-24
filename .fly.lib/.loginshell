@@ -13,4 +13,4 @@ case "$FLY_SHELL" in
     *zsh)  ZDOTDIR="$FLY_HOME/.fly.d/.fly.lib" exec "$FLY_SHELL" -d;;
     *ksh)  export ENV="$FLY_HOME/.fly.d/.fly.lib/.login"; exec "$FLY_SHELL";;
     *fish) exec "$FLY_SHELL" -C ". .fishrc";;
-esac <&1 #</dev/tty makes it readonly on fsu
+esac </dev/tty #<&1 (warn mesg n </dev/tty change /dev/tty mode)
