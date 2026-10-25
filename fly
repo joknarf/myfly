@@ -291,7 +291,7 @@ _EOF_
 function _fly
 {
     typeset plugin submodule
-    _fly_tmpdir="$FLY_TMPDIR/.fly.\`id -u\`/$_fly_uuid"
+    _fly_tmpdir="\${XDG_RUNTIME_DIR:-$FLY_TMPDIR}/.fly.\`id -u\`/$_fly_uuid"
     _fly_tarz="$FLY_TARZ"
     case "$1" in
         list)
