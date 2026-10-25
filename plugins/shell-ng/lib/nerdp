@@ -31,6 +31,8 @@ ps1_pfstyle="/auto:exit_status /lblack:elapse /blue:userhost >/auto:git_branch >
 : "${ps1_sshmode:=raw}" # pssh mode (1:raw 2:b64 3:cfg 4:url)
 : "${ps1_user_char:= •}" # standard user prompt end
 : "${ps1_root_char:= ▲}" # root user prompt end
+: ${ps1_user_color:=$'\033[0;92m'}
+: ${ps1_root_color:=$'\033[0;91m'}
 
 #=========================
 type typeset >/dev/null 2>&1 || alias typeset=local # ash
