@@ -334,7 +334,7 @@ function _fly_cleanup
 {
     [ -d "$1" ] || return 0
     [ "$(\cd "$1";pwd -P)" = "$(\cd "$HOME";pwd -P)" ] && return 0
-    flock -n "$1/.fly.lock" rm -rf "$1"/.fly.* && rmdir "$1" "${1%/*}" 2>/dev/null
+    flock -n 5 && flock "$1/.fly.lock" rm -rf "$1"/.fly.* && rmdir "$1" "${1%/*}" 2>/dev/null
 }
 
 case "$1" in
