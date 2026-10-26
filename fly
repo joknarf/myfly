@@ -344,7 +344,6 @@ case "$1" in
         echo "$FLY_MSG" >&2
         \cd /;\cd
         . "$_fly_lib/.login.${FLY_SHELL##*/}"
-        chmod 666 /dev/tty 2>/dev/null # bug mesg n </dev/tty (ubuntu)
         . "$_fly_lib/.source_plugins"
         [ "$_fly_cmd" ] && {
           _fly_cmd="$(base64 -d <<<"$_fly_cmd")" || exit 1
