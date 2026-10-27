@@ -104,7 +104,8 @@ ps1_info_vars='{FLY_SHELL##*[/\\\\]}'
 #ps1_user_char=" •"
 #ps1_root_char=" ▲" #◆ ► ● ⚫ ⚪ ▲ ➽ ➤ ✪ ✇ ►◄⏩ ✨ ♦ ◙ ⵔ ✚ ⛯ ➕ ♯ ⛛ ✮ ✱ ⵙ ⵔ ★
 #ps1_user_color=$'\033[0;92m'
-#ps1_root_color=$'\033[0;91m'
+ps1_user_color=$'\033[38;2;24;237;147m'
+ps1_root_color=$'\033[38;2;252;78;110m'
 
 # python
 type python >/dev/null 2>&1 || alias python='python3'
@@ -151,3 +152,4 @@ touch ~/.cd_history 2>/dev/null || CDHISTFILE=/tmp/.cd_history.$USER
 alias flyinst='cd ~/work/flypack;git pull origin main;. ./fly.pak install'
 unset LANGUAGE
 export MSYS=winsymlinks:nativestrict
+_fly_ssh_mux=1
