@@ -1,9 +1,9 @@
 #echo "joknarf .flyrc.bash"
 stty -ixon
-export BASH_LOADABLES_PATH=/usr/lib/bash
-for i in sleep uname rm rmdir push mkdir mkfifo tee ln dirname basename;do
-   [ -f /usr/lib/bash/$i ] && enable -f /usr/lib/bash/$i $i
-done
+#export BASH_LOADABLES_PATH=/usr/lib/bash
+#for i in sleep uname rm rmdir push mkdir mkfifo tee ln dirname basename;do
+#   [ -f /usr/lib/bash/$i ] && enable -f /usr/lib/bash/$i $i
+#done
 shopt -s histappend lithist
 HISTTIMEFORMAT='%Y-%m-%d %H:%M:%S '
 alias forceappkey='printf "\e[?1h" >&2' # Force arrow App Key (Moba bug)
