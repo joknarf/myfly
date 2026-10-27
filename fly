@@ -230,26 +230,38 @@ function _fly_ssh
     }
     _fly_ssh_conf()
     {
-        typeset f="$FLY_HOME/.fly.ssh"
+        typeset f="$FLY_HOME/.fly.ssh" t=$1
+        shift
         cmd=${cmd//$'\n'/;}
         touch "$f";chmod 600 "$f"
         cat - <<_EOF_ >"$f"
-RequestTTY $1
+RequestTTY $t
 RemoteCommand $cmd
+$(printf "%s\n" "$@")
 $ssh_config
 _EOF_
     }
 
-    _fly_ssh2()
+    _fly_ssh_mux()
     {
+        mkdir -p -m 700 "$FLY_HOME/.fly.s"
         cmd="/bin/sh -c '$(_fly_xpretar);$(_fly_xpackage)'"
-        _fly_package | ssh -o LogLevel=Error "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd" || return $?
+        ((_fly_ssh_ok)) && {
+            mux=("ControlMaster auto" "ControlPath $FLY_HOME/.fly.s/.%h.s" "ControlPersist=10")
+            _fly_ssh_conf no "LogLevel Error" "${mux[@]}"
+            ssh_opts=("${ssh_args[@]}" -F "$FLY_HOME/.fly.ssh")
+        } || {
+            mux=(-o ControlMaster=auto -o ControlPath="$FLY_HOME/.fly.s/.%h.s" -o ControlPersist=10)
+            ssh_opts=(-o LogLevel=Error "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
+        }
+        _fly_package | ssh "${ssh_opts[@]}" || return $?
         cmd="exec /bin/sh -c 'FLY_HOME=\"$_fly_tmpdir\";$(_fly_pkg_login "${fly_cmd[@]}")'"
-        ssh -t "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd"
-        e=$?
+        ((_fly_ssh_ok)) && _fly_ssh_conf yes "${mux[@]}" || \
+            ssh_opts=(-t "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
+        ssh "${ssh_opts[@]}"; e=$?
         _fly_hist_end
     }
-    typeset __ cmd ssh_args ssh_argc ssh_config fly_cmd e params q=$'\'' halias
+    typeset __ cmd ssh_args ssh_argc ssh_config fly_cmd e params q=$'\'' halias mux ssh_opts
     ssh_args=($__);ssh_argc=($__)
     (($# == 1)) && {
         params="$(_fly_hist_alias "$1")"
@@ -279,10 +291,11 @@ _EOF_
     fi
     _fly_tar_init
     cmd="exec /bin/sh -c '$(_fly_pkg_warp "${fly_cmd[@]}")'"
-    ((_fly_ssh_ok)) && [ ${#cmd} -lt 130000 ] || { _fly_ssh2 ; return $e; }
+    ((_fly_ssh_mux)) && { _fly_ssh_mux; return $e; }
+    ((_fly_ssh_ok)) && [ ${#cmd} -lt 130000 ] || { _fly_ssh_mux ; return $e; }
     ssh_args+=(-F "$FLY_HOME/.fly.ssh")
     _fly_ssh_conf yes
-    ssh "${ssh_args[@]}";e=$?
+    ssh "${ssh_args[@]}"; e=$?
     _fly_hist_end
     return $e
 }
