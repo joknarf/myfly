@@ -254,7 +254,8 @@ _EOF_
             mux=(-o ControlMaster=auto -o ControlPath="$FLY_HOME/.fly.s/.%h.s" -o ControlPersist=10)
             ssh_opts=(-o LogLevel=Error "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
         }
-        _fly_package | ssh "${ssh_opts[@]}" || return $?
+        _fly_package 2>/dev/null | ssh "${ssh_opts[@]}"; (($?==255)) && return 255 # bsdtar/box pad
+
         cmd="exec /bin/sh -c 'FLY_HOME=\"$_fly_tmpdir\";$(_fly_pkg_login "${fly_cmd[@]}")'"
         ((_fly_ssh_ok)) && _fly_ssh_conf yes "${mux[@]}" || \
             ssh_opts=(-t "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
