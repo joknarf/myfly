@@ -230,7 +230,7 @@ function _fly_ssh
     }
     _fly_ssh_conf()
     {
-        typeset f="$FLY_HOME/.fly.ssh" t=$1
+        typeset f="$tmp/.fly.ssh" t=$1
         shift
         cmd=${cmd//$'\n'/;}
         touch "$f";chmod 600 "$f"
@@ -244,14 +244,14 @@ _EOF_
 
     _fly_ssh_mux()
     {
-        mkdir -p -m 700 "$FLY_HOME/.fly.s"
+        mkdir -p -m 700 "$tmp/.fly.s"
         cmd="/bin/sh -c '$(_fly_xpretar);$(_fly_xpackage)'"
         ((_fly_ssh_ok)) && {
-            mux=("ControlMaster auto" "ControlPath $FLY_HOME/.fly.s/.%h.s" "ControlPersist=10")
+            mux=("ControlMaster auto" "ControlPath $tmp/.fly.s/%C" "ControlPersist=10")
             _fly_ssh_conf no "LogLevel Error" "${mux[@]}"
-            ssh_opts=("${ssh_args[@]}" -F "$FLY_HOME/.fly.ssh")
+            ssh_opts=("${ssh_args[@]}" -F "$tmp/.fly.ssh")
         } || {
-            mux=(-o ControlMaster=auto -o ControlPath="$FLY_HOME/.fly.s/.%h.s" -o ControlPersist=10)
+            mux=(-o ControlMaster=auto -o ControlPath="$tmp/%r.%h.%p" -o ControlPersist=10)
             ssh_opts=(-o LogLevel=Error "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
         }
         _fly_package 2>/dev/null | ssh "${ssh_opts[@]}"; (($?==255)) && return 255 # bsdtar/box pad
@@ -264,6 +264,8 @@ _EOF_
     }
     typeset __ cmd ssh_args ssh_argc ssh_config fly_cmd e params q=$'\'' halias mux ssh_opts
     ssh_args=($__);ssh_argc=($__)
+    typeset tmp="$FLY_HOME"
+    [ -O "$XDG_RUNTIME_DIR" ] && tmp="$XDG_RUNTIME_DIR"
     (($# == 1)) && {
         params="$(_fly_hist_alias "$1")"
         [ "$params" ] && eval "set -- $params"
