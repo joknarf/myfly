@@ -152,4 +152,4 @@ touch ~/.cd_history 2>/dev/null || CDHISTFILE=/tmp/.cd_history.$USER
 alias flyinst='cd ~/work/flypack;git pull origin main;. ./fly.pak install'
 unset LANGUAGE
 export MSYS=winsymlinks:nativestrict
-_fly_ssh_mux=1
+FLY_SSH_MUX=1
