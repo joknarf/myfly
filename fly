@@ -41,9 +41,14 @@ function _fly_package
     $_fly_tar -cf - -C "$FLY_HOME" "${_fly_taropts[@]}" --exclude=README.md --exclude='plugins/*/.*' --exclude '*/*/tests' "$_fly_tarz" .fly.d
 }
 
+function _fly_home
+{
+    printf 'FLY_HOME="%s/.fly.`id -u`/%s"\n' "$FLY_TMPDIR" "$_fly_uuid"
+}
+
 function _fly_xpretar
 {
-    printf 'FLY_HOME="%s"\n' "$_fly_tmpdir"
+    _fly_home
     cat - <<'EOF'
 (umask 077;mkdir -p "$FLY_HOME")
 ! chmod 700 "$FLY_HOME" && echo "Not owner of $FLY_HOME. Abort" >&2 && exit 1
@@ -251,12 +256,12 @@ _EOF_
             _fly_ssh_conf no "LogLevel Error" "${mux[@]}"
             ssh_opts=("${ssh_args[@]}" -F "$tmp/.fly.ssh")
         } || {
-            mux=(-o ControlMaster=auto -o ControlPath="$tmp/%r.%h.%p" -o ControlPersist=10)
+            mux=(-o ControlMaster=auto -o ControlPath="$tmp/.fly.s/%r.%h.%p" -o ControlPersist=10)
             ssh_opts=(-o LogLevel=Error "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
         }
         _fly_package 2>/dev/null | ssh "${ssh_opts[@]}"; (($?==255)) && return 255 # bsdtar/box pad
 
-        cmd="exec /bin/sh -c 'FLY_HOME=\"$_fly_tmpdir\";$(_fly_pkg_login "${fly_cmd[@]}")'"
+        cmd="exec /bin/sh -c '$(_fly_home);$(_fly_pkg_login "${fly_cmd[@]}")'"
         ((_fly_ssh_ok)) && _fly_ssh_conf yes "${mux[@]}" || \
             ssh_opts=(-t "${mux[@]}" "${ssh_args[@]}" "${ssh_argc[@]}" "$cmd")
         ssh "${ssh_opts[@]}"; e=$?
@@ -307,7 +312,6 @@ _EOF_
 function _fly
 {
     typeset plugin submodule
-    _fly_tmpdir="$FLY_TMPDIR/.fly.\`id -u\`/$_fly_uuid"
     _fly_tarz="$FLY_TARZ"
     case "$1" in
         list)
