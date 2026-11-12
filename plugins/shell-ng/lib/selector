@@ -98,12 +98,14 @@ _sel_tty_init() {
   [ "$SEL_SMAM" ] || _sel_probe_smam
   printf "\e[?7l" # nowrap
   : "${_maxlines:=$LINES}"
+  [ "$help" ] && ((_maxlines--))
   ((_maxlines > 2)) || _maxlines=''
   _sel_init_filter
   disp_item_sel="\n$bg${SELECTOR_COL_ARROW}m$wfg %*s $fg${SELECTOR_COL_ARROW}m\e[49m$pl$fg${SELECTOR_COL_SELECTED}m%s%-*s$fg${SELECTOR_COL_COMSEL}m %s\e[0m"
   disp_item="\n$fg${SELECTOR_COL_NUM}m %*s  $fg${SELECTOR_COL_ITEM}m%s%-*s$fg${SELECTOR_COL_COMMENT}m %s\e[0m"
   disp_form="$bg${SELECTOR_COL_PROMPT}m$wfg %s $fg${SELECTOR_COL_PROMPT}m$bg${SELECTOR_COL_TOTAL}m$pl$wfg %s$fg${SELECTOR_COL_TOTAL}m\e[49m$pl\e[0m %s"
   ((SELECTOR_CASEI)) && disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
+  disp_help="\n$fg${SELECTOR_COL_PROMPT}m %s \e[0m"
   tty_init=1
 }
 
@@ -222,6 +224,7 @@ _sel_showmenu()
   done
   size=$nbitems
   ((size >= lines)) && ((size=lines-1))
+  [ "$help" ] && printf "$disp_help" "$help" && ((size++))
   # back to top of menu
   _sel_tput ed
   _sel_tput cuu $size
@@ -472,7 +475,7 @@ _sel_domenu()
       0)
         #_sel_items_filter "."
         _nsel=1
-        filter=""
+        #filter=""
         _sel_showmenu "${_force_nsel:-1}"
         _force_nsel=''
         continue;;
@@ -567,7 +570,7 @@ function selector
   typeset prompt filter
   typeset bg="\e[48;2;" fg="\e[38;2;" pl=""
   typeset wfg="$fg${SELECTOR_COL_TEXT}m"
-  typeset _items _aitems _maxlines _autofilter _keyfunc _filfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet=0 shift stream _a filtered prev_filtered depth=1 tty_init=0 _stty_ori i j s lines cur item ritem itemfile uitem ufilt break=0 _powerline icons __
+  typeset _items _aitems _maxlines _autofilter _keyfunc _filfunc _sel_option _nsel=1 _items_ori disp_item_sel disp_item disp_form disp_help key nbitems _find_type _path_fprefix _path_rprefix _last_nsel _last_items _last_items_ori e archive quiet=0 shift stream _a filtered prev_filtered depth=1 tty_init=0 _stty_ori i j s lines cur item ritem itemfile uitem ufilt break=0 _powerline icons __ help
   [ "$ZSH_VERSION" ] || _a='_'
   ((SELECTOR_CASEI)) || SELECTOR_CASEI=0
   prompt='select'
@@ -613,6 +616,8 @@ function selector
         [ "$_sel_option" = dirnames ] && _find_type=(-type d)
         ;;
       -q|--quiet) quiet=1;shift=1
+        ;;
+      -H|--helptxt) [ "$2" ] && help="$2" || return 1
         ;;
       *) cat - <<'EOF'
 usage: selector [-p <prompt>] [-P <y|n>] [-k <keyfunc>] [-m <max>] [-o <opt>] -i <items>

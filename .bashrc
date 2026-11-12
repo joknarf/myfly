@@ -42,6 +42,7 @@ unset VSCODE_SHELL_INTEGRATION
 }
 
 bind 'set enable-bracketed-paste off'
+bind -x '"\C-p": "pgt"'
 unset -f command_not_found_handle
 #shopt -s -o history
 complete -F _flyto to
