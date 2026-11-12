@@ -515,9 +515,10 @@ _pgrep() {
 pgt_menu() {
     . "${0%/*}/selector"
     pgt_items_filter() {
+        [ "$1" ] || shift
         pids=($def_pids)
-        pgt_do "$1"
-        prompt="pgtree ${pgrep_args[@]}"
+        pgt_do "$@"
+        prompt="pgtree ${pgrep_args[*]}"
         _sel_load_items < <(pgt)
         filter="$pgrep_re"
         ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}")
