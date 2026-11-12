@@ -145,9 +145,9 @@ pgt_key() {
             pids=("$p")
             [ "$key" = alt-k ] && sig=9 || sig=15
             popt=1
-            _sel_tput ed
             _sel_tty_restore
-            pgt
+            stty sane
+            pgt </dev/tty
             _sel_tty_init
             sleep 0.5
             sig=0;popt=0
@@ -230,7 +230,7 @@ function runcmd(cmd) {
 function ask(prompt) {
     # input text
     printf("%s", prompt)
-    getline answer < "-"
+    getline answer <"-"
     return answer
 }
 
