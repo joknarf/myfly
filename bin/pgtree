@@ -25,6 +25,7 @@ _pgt_initsys() {
     case "$system" in
         AIX)     PGT_PSOPT=(-e); PGT_STIME="start";;
         Darwin)  PGT_STIME="start";PGT_PGOPT='-a';;
+        FreeBSD) PGT_PGOPT='-a';;
         SunOS)   PGT_PSOPT=(-e); PGT_COMM="fname";;
         CYGWIN*) PGT_PSOPT=(-e);;
     esac
