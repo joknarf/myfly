@@ -247,8 +247,8 @@ _sel_items_filter()
 {
   typeset filt="$1" j=1 i
   _nsel=1
-  [ "$filt" ] || return
   [ "$_filfunc" ] && { "$_filfunc" "$filt"; return; }
+  [ "$filt" ] || return
   ufilt="$filt"
   ((SELECTOR_CASEI)) && _sel_upper ufilt
   _sel_nbitems

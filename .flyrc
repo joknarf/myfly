@@ -153,3 +153,4 @@ alias flyinst='cd ~/work/flypack;git pull origin main;. ./fly.pak install'
 unset LANGUAGE
 export MSYS=winsymlinks:nativestrict
 FLY_SSH_MUX=1
+alias pgt='pgtree -M1f'
