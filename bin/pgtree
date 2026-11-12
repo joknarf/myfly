@@ -231,7 +231,7 @@ function runcmd(cmd) {
 function ask(prompt) {
     # input text
     printf("%s", prompt)
-    getline answer <"-"
+    getline answer
     return answer
 }
 
@@ -484,7 +484,7 @@ EOF
 pgt() {
     $awk -v mypid=$$ -v psopt="${PGT_PSOPT[*]}" -v fpid="$PGT_PID" -v fstime="$PGT_STIME" -v fcomm="$PGT_COMM" \
         -v fuser="$PGT_USER" -v spids="${pids[*]}" -v sig="$sig" -v xfields="$xfields" -v soptions="${options[*]}" \
-        "$pgtreeawk" -- "$@"
+        "$pgtreeawk" 
 }
 
 
