@@ -130,6 +130,16 @@ EOF
     exit 1
 }
 
+toggle() {
+    local i a="$1" p="$2"
+    eval '
+        for ((i=0;i<${#'$a'[@]};i++));do
+            [ "${'$a'[i]}" = "$p" ] && unset '$a'[i] && '$a'=("${'$a'[@]}") && return
+        done
+        '$a'+=("$p")
+    '
+}
+
 pgt_key() {
     case "$key" in
         'OT'|'[15~') # F5
@@ -169,20 +179,16 @@ pgt_key() {
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
-        alt-i)
-            local c=0
-            for ((i=0;i<${#pgrep_args[@]};i++));do
-                [ "${pgrep_args[i]}" = -i ] && unset pgrep_args[i] && c=1
-            done
-            ((c)) || pgrep_args+=(-i)
+        alt-[ixf])
+            local p="-${key#*-}"
+            toggle pgrep_args "$p"
             pgt_items_filter "${pgrep_re[@]}"
+            [ "$p" = -i ] || return 0
         ;;
-        alt-c)
-            local c=0
-            for ((i=0;i<${#options[@]};i++));do
-                [ "${options[i]}" = -c ] && unset options[i] && c=1
-            done
-            ((c)) || options+=(-c)
+        alt-[ct])
+            local p="-${key#*-}"
+            [ "$p" = -t ] && { p='-T'; toggle PGT_PSOPT -T; PGT_PID='spid'; }
+            toggle options "$p"
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
