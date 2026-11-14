@@ -90,8 +90,9 @@ return
 
 usage() {
     cat - <<'EOF'
-    usage: pgtree [-W] [-RIya] [-C <when>] [-O <psfield>] [-c|-k|-K] [-1|-p <pid1>,...|<pgrep args>]
+    usage: pgtree [-W|-M] [-RIya] [-C <when>] [-O <psfield>] [-c|-k|-K] [-1|-p <pid1>,...|<pgrep args>]
 
+    -M : interactive Mode
     -I : use -o uid instead of -o user for ps command
          (if uid/user mapping is broken ps command can be stuck)
     -c : display processes and children only
@@ -558,7 +559,7 @@ popt=0
 def_pids=0
 xfields="$PGT_STIME"
 set -- $PGTREE "$@"
-argopt="MWRThIckKfxvinoyaA1C:r:p:u:U:g:G:P:s:t:F:O:w:-:"
+argopt="MWRThIckKfxvinoyaA1C:r:p:u:U:g:G:P:s:t:F:O:w:"
 pgrep_crit=0
 while getopts "$argopt" opt; do
     case $opt in
@@ -578,7 +579,6 @@ while getopts "$argopt" opt; do
         R) PGT_PGREP='_pgrep' ;;
         [Afxvino]) pgrep_args+=("-$opt") ;;
         [uUgGPrstF]) pgrep_args+=("-$opt" "$OPTARG");pgrep_crit=1 ;;
-        -) pgrep_args+=("--$OPTARG");;
         *) pgrep_args+=("$opt") ;;
     esac
 done
@@ -592,7 +592,6 @@ case "$wrap" in
     n|no) dowrap=false ;;
     *) [ -t 1 ] && dowrap=true || dowrap=false ;;
 esac
-[ "${@:$OPTIND-1:1}" = -- ] && ((OPTIND--))
 shift $((OPTIND - 1)); unset OPTIND
 pgrep_re=("$@")
 $dowrap && printf "\x1b[?7l" && trap 'printf "\x1b[?7h"' EXIT # rmam/smam
