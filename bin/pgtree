@@ -131,10 +131,15 @@ EOF
 }
 
 del_item() {
-    local i a="$1" p="$2"
+    local i a="$1" p="$2" del2="$3"
     eval '
         for ((i=0;i<${#'$a'[@]};i++));do
-            [ "${'$a'[i]}" = "$p" ] && unset '$a'[i] && '$a'=("${'$a'[@]}") && return 0
+            [ "${'$a'[i]}" = "$p" ] && {
+              unset '$a'[i]
+              ((del2)) && unset '$a'[i+1]
+              '$a'=("${'$a'[@]}")
+              return 0
+            }
         done
     '
     return 1
@@ -147,6 +152,30 @@ toggle() {
 }
 
 pgt_key() {
+    case "$key" in
+        'OP'|'11~')
+            local t=$'\t'
+            _sel_tty_restore
+            selector -p "options" -q -f - <<EOF
+alt-u${t}-u effective user
+ctrl-u${t}-U real user
+alt-g${t}-g process group
+ctrl-g${t}-G real group
+alt-t${t}-T toggle threads view
+alt-c${t}-c toggle children only
+alt-x${t}-x toggle exact match
+alt-f${t}-f toggle full command match
+alt-i${t}-i toggle case sensitive
+alt-o${t}-O add ps fields
+alt-k${t}-k kill process tree
+ctrl-k${t}-K kill -9 process tree
+ctrl-l${t}refresh process tree
+EOF
+            _sel_tty_init
+            [ "$selected" ] || return 0
+            key="$selected"
+        ;;
+    esac
     case "$key" in
         'OT'|'[15~') # F5
             pgt_items_filter "${pgrep_re[@]}"
@@ -172,16 +201,17 @@ pgt_key() {
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
-        ctrl-u|alt-u)
-            local u
+        ctrl-[ug]|alt-[ug])
+            local p="-${key#*-}" pr='user'
+            [[ $key = ctrl-* ]] && p=${p^^}
+            [ "$p" = -g ] && pr='pgid'
+            [ "$p" = -G ] && pr='group'
             _sel_tty_restore
-            selector -p user -q -f <(compgen -W "$(ps "${PGT_PSOPT[@]}" -o user=)"| sort -u)
+            selector -p "$p $pr" -q -f <(compgen -W "$(ps "${PGT_PSOPT[@]}" -o "$pr=")"| sort -u)
             _sel_tty_init
-            for ((i=0;i<${#pgrep_args[@]};i++));do
-                [ "${pgrep_args[i]}" = -u ] && unset pgrep_args[i] pgrep_args[i+1] && pgrep_args=("${pgrep_args[@]}")
-            done
+            del_item pgrep_args "$p" 1
             [[ ${pgrep_args[*]} =~ -[uUgGPrstF] ]] || pgrep_crit=0
-            [ "$selected" ] && pgrep_args+=(-u "$selected") && pgrep_crit=1
+            [ "$selected" ] && pgrep_args+=($p "$selected") && pgrep_crit=1
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
@@ -203,10 +233,19 @@ pgt_key() {
         ctrl-o|alt-o)
             local pso='stime lstart pcpu pmem rss vsz tty exe stat s uid sid time wchan'
             _sel_tty_restore
-            selector -p "ps -o $xfields" -q -f <(compgen -W "$pso")
+            selector -p "-O $xfields" -q -f <(compgen -W "$pso")
             _sel_tty_init
             [ "$selected" ] && xfields+=",$selected"
             pgt_items_filter "${pgrep_re[@]}"
+            return 0
+        ;;
+        ctrl-[jm]|$'\0d')
+            local p
+            [[ $item =~ (m|─)([0-9]+) ]] && p="${BASH_REMATCH[2]}"
+            ((p>1)) || return 0
+            pids=("$p")
+            popt=1
+            pgt_items_filter ''
             return 0
         ;;
     esac
@@ -554,7 +593,7 @@ pgt_menu() {
         filter="$pgrep_re"
         ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}")
     }
-    selector -q -l pgt_items_filter -F "$pgrep_re" -p "pgtree ${pgrep_args[*]}" -k pgt_key -H '[Alt] u:user o:fields c:children t:threads k:kill [Ctl] k:kill-9 l:refresh' -f <(pgt)
+    selector -q -l pgt_items_filter -F "$pgrep_re" -p "pgtree ${pgrep_args[*]}" -k pgt_key -H '[F1] shortcuts' -f <(pgt)
     exit 0
 }
 
