@@ -130,14 +130,19 @@ EOF
     exit 1
 }
 
-toggle() {
+del_item() {
     local i a="$1" p="$2"
     eval '
         for ((i=0;i<${#'$a'[@]};i++));do
-            [ "${'$a'[i]}" = "$p" ] && unset '$a'[i] && '$a'=("${'$a'[@]}") && return 1
+            [ "${'$a'[i]}" = "$p" ] && unset '$a'[i] && '$a'=("${'$a'[@]}") && return 0
         done
-        '$a'+=("$p")
     '
+    return 1
+}
+toggle() {
+    local a="$1" p="$2"
+    del_item "$a" "$p" && return 1
+    eval "$a"'+=("$p")'
     return 0
 }
 
@@ -156,7 +161,7 @@ pgt_key() {
             [[ $item =~ (m|─)([0-9]+) ]] && p="${BASH_REMATCH[2]}"
             ((p>1)) || return 0
             pids=("$p")
-            [ "$key" = alt-k ] && sig=9 || sig=15
+            [ "$key" = ctrl-k ] && sig=9 || sig=15
             popt=1
             _sel_tty_restore
             stty sane
@@ -182,6 +187,8 @@ pgt_key() {
         ;;
         alt-[ixf])
             local p="-${key#*-}"
+            [ "$p" = -x ] && del_item pgrep_args -f
+            [ "$p" = -f ] && del_item pgrep_args -x
             toggle pgrep_args "$p"
             pgt_items_filter "${pgrep_re[@]}"
             [ "$p" = -i ] || return 0
@@ -581,7 +588,7 @@ while getopts "$argopt" opt; do
         T) [ "$PGT_STIME" = "etime" ] && PGT_PGREP='_pgrep' || PGT_PID='spid'; PGT_PSOPT+=(-T) ;;
         k) sig=15 ;;
         K) sig=9 ;;
-        p) pids=("$OPTARG");popt=1 ;;
+        p) pids=(${OPTARG//,/ });popt=1 ;;
         O) xfields="$OPTARG" ;;
         1) pids=(1);def_pids=1 ;;
         R) PGT_PGREP='_pgrep' ;;
