@@ -155,7 +155,7 @@ pgt_key() {
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
-        ctrl-u)
+        ctrl-u|alt-u)
             local u
             _sel_tty_restore
             selector -p user -q -f <(compgen -W "$(ps "${PGT_PSOPT[@]}" -o user=)"| sort -u)
@@ -185,7 +185,7 @@ pgt_key() {
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
-        ctrl-o)
+        ctrl-o|alt-o)
             local pso='stime lstart pcpu pmem rss vsz tty exe stat s uid sid time wchan'
             _sel_tty_restore
             selector -p "ps -o $xfields" -q -f <(compgen -W "$pso")
@@ -267,7 +267,7 @@ function treedisplay(use_ascii, use_color) {
         col[fcomm] = "10m"
         col[fstime] = "14m"
         col["args"] = "15m"
-        col["%cpu"] = "9m"
+        col["%cpu"] = col["pcpu"] = "9m"
         col["default"] = "13m"
     }
 }
@@ -532,12 +532,13 @@ pgt_menu() {
         [ "$1" ] || shift
         ((popt)) || pids=($def_pids)
         pgt_pids "$@"
-        prompt="pgtree ${pgrep_args[*]}"
+        printf -v prompt '%s ' "${options[@]}" "${pgrep_args[@]}"
+        prompt="pgtree ${prompt% }"
         _sel_load_items < <(pgt)
         filter="$pgrep_re"
         ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}")
     }
-    selector -q -l pgt_items_filter -p "pgtree ${pgrep_args[*]}" -k pgt_key -H '[C-u]:user [C-k]:kill [A-k]:kill -9 [A-i]:case [C-o]:ps fields [C-l]:refresh' -f <(pgt)
+    selector -q -l pgt_items_filter -p "pgtree ${pgrep_args[*]}" -k pgt_key -H '[A-u]:user [A-o]:fields [A-c]:children [C-k]:kill [A-k]:kill -9 [C-l]:refresh [A-i]:case' -f <(pgt)
     exit 0
 }
 
