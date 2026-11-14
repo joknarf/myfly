@@ -132,11 +132,11 @@ EOF
 pgt_key() {
     case "$key" in
         'OT'|'[15~') # F5
-            _sel_items_filter "${pgrep_re[@]}"
+            pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
         ctrl-l)
-            _sel_items_filter "${pgrep_re[@]}"
+            pgt_items_filter "${pgrep_re[@]}"
             return 2
         ;;
         ctrl-k|alt-k)
@@ -163,7 +163,8 @@ pgt_key() {
             for ((i=0;i<${#pgrep_args[@]};i++));do
                 [ "${pgrep_args[i]}" = -u ] && unset pgrep_args[i] pgrep_args[i+1]
             done
-            [ "$selected" ] && pgrep_args+=(-u "$selected")
+            [[ ${pgrep_args[*]} =~ -[[uUgGPrstF] ]] || pgrep_crit=0
+            [ "$selected" ] && pgrep_args+=(-u "$selected") && pgrep_crit=1
             pgt_items_filter "${pgrep_re[@]}"
             return 0
         ;;
@@ -174,6 +175,15 @@ pgt_key() {
             done
             ((c)) || pgrep_args+=(-i)
             pgt_items_filter "${pgrep_re[@]}"
+        ;;
+        alt-c)
+            local c=0
+            for ((i=0;i<${#options[@]};i++));do
+                [ "${options[i]}" = -c ] && unset options[i] && c=1
+            done
+            ((c)) || options+=(-c)
+            pgt_items_filter "${pgrep_re[@]}"
+            return 0
         ;;
         ctrl-o)
             local pso='stime lstart pcpu pmem rss vsz tty exe stat s uid sid time wchan'
@@ -188,17 +198,18 @@ pgt_key() {
     return 2
 }
 
-pgt_do() {
+pgt_pids() {
     pgrep_re=("$@")
     if [ "$PGT_PID" = 'spid' ] ;then
         if ((popt));then
             pids=( $(ps -T -p "${pids[@]}" -o spid=) )
         else
-            [ "$pgrep_args$pgrep_re" ] && pids=( $("$PGT_PGREP" $PGT_PGOPT -w "${pgrep_args[@]}" -- "${pgrep_re[@]}") )
+            [ ! "$pgrep_re" ] && ((pgrep_crit==0)) && return
+            pids=( $("$PGT_PGREP" $PGT_PGOPT -w "${pgrep_args[@]}" -- "${pgrep_re[@]}") )
        fi
     else
-        [ ! "$pgrep_re" ] && [ "${pgrep_args[*]}" = -f ] && return
-        [ "$pgrep_args$pgrep_re" ] && pids=( $("$PGT_PGREP" $PGT_PGOPT "${pgrep_args[@]}" -- "${pgrep_re[@]}") )
+        [ ! "$pgrep_re" ] && ((pgrep_crit==0)) && return
+        pids=( $("$PGT_PGREP" $PGT_PGOPT "${pgrep_args[@]}" -- "${pgrep_re[@]}") )
     fi
 }
 
@@ -514,11 +525,13 @@ _pgrep() {
     ' re="$re" IGNORECASE="$icase"
 }
 pgt_menu() {
-    . "${0%/*}/selector"
+    local sel="${0%/*}/../share/pgtree/selector"
+    [ -f "$sel" ] || sel="${0%/*}/selector"
+    . "$sel"
     pgt_items_filter() {
         [ "$1" ] || shift
-        pids=($def_pids)
-        pgt_do "$@"
+        ((popt)) || pids=($def_pids)
+        pgt_pids "$@"
         prompt="pgtree ${pgrep_args[*]}"
         _sel_load_items < <(pgt)
         filter="$pgrep_re"
@@ -545,6 +558,7 @@ def_pids=0
 xfields="$PGT_STIME"
 set -- $PGTREE "$@"
 argopt="MWRThIckKfxvinoyaA1C:r:p:u:U:g:G:P:s:t:F:O:w:-:"
+pgrep_crit=0
 while getopts "$argopt" opt; do
     case $opt in
         h) usage;;
@@ -562,7 +576,7 @@ while getopts "$argopt" opt; do
         1) pids=(1);def_pids=1 ;;
         R) PGT_PGREP='_pgrep' ;;
         [Afxvino]) pgrep_args+=("-$opt") ;;
-        [uUgGPrstF]) pgrep_args+=("-$opt" "$OPTARG") ;;
+        [uUgGPrstF]) pgrep_args+=("-$opt" "$OPTARG");pgrep_crit=1 ;;
         -) pgrep_args+=("--$OPTARG");;
         *) pgrep_args+=("$opt") ;;
     esac
@@ -583,7 +597,7 @@ pgrep_re=("$@")
 $dowrap && printf "\x1b[?7l" && trap 'printf "\x1b[?7h"' EXIT # rmam/smam
 while :;do
     $watch && clear && echo "Every 2.0s: pgtree $args    $(date)"
-    pgt_do "${pgrep_re[@]}"
+    pgt_pids "${pgrep_re[@]}"
     ((menu)) && pgt_menu
     pgt
     $watch || break
