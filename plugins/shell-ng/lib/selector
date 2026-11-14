@@ -565,7 +565,7 @@ _sel_domenu()
           disp_form="${disp_form//$SELECTOR_COL_TEXT/$SELECTOR_COL_CASEI}"
           SELECTOR_CASEI=1
         }
-        filter='';_sel_showmenu
+        _sel_showmenu
         ;;
       *) break;
     esac
