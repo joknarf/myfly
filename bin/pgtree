@@ -134,10 +134,11 @@ toggle() {
     local i a="$1" p="$2"
     eval '
         for ((i=0;i<${#'$a'[@]};i++));do
-            [ "${'$a'[i]}" = "$p" ] && unset '$a'[i] && '$a'=("${'$a'[@]}") && return
+            [ "${'$a'[i]}" = "$p" ] && unset '$a'[i] && '$a'=("${'$a'[@]}") && return 1
         done
         '$a'+=("$p")
     '
+    return 0
 }
 
 pgt_key() {
@@ -172,9 +173,9 @@ pgt_key() {
             selector -p user -q -f <(compgen -W "$(ps "${PGT_PSOPT[@]}" -o user=)"| sort -u)
             _sel_tty_init
             for ((i=0;i<${#pgrep_args[@]};i++));do
-                [ "${pgrep_args[i]}" = -u ] && unset pgrep_args[i] pgrep_args[i+1]
+                [ "${pgrep_args[i]}" = -u ] && unset pgrep_args[i] pgrep_args[i+1] && pgrep_args=("${pgrep_args[@]}")
             done
-            [[ ${pgrep_args[*]} =~ -[[uUgGPrstF] ]] || pgrep_crit=0
+            [[ ${pgrep_args[*]} =~ -[uUgGPrstF] ]] || pgrep_crit=0
             [ "$selected" ] && pgrep_args+=(-u "$selected") && pgrep_crit=1
             pgt_items_filter "${pgrep_re[@]}"
             return 0
@@ -187,7 +188,7 @@ pgt_key() {
         ;;
         alt-[ct])
             local p="-${key#*-}"
-            [ "$p" = -t ] && { p='-T'; toggle PGT_PSOPT -T; PGT_PID='spid'; }
+            [ "$p" = -t ] && { p='-T'; toggle PGT_PSOPT -T && PGT_PID='spid'|| PGT_PID='pid'; }
             toggle options "$p"
             pgt_items_filter "${pgrep_re[@]}"
             return 0
@@ -531,6 +532,7 @@ _pgrep() {
       info ~ re { print pid }
     ' re="$re" IGNORECASE="$icase"
 }
+
 pgt_menu() {
     local sel="${0%/*}/../share/pgtree/selector"
     [ -f "$sel" ] || sel="${0%/*}/selector"
@@ -545,7 +547,7 @@ pgt_menu() {
         filter="$pgrep_re"
         ((${#_aitems[@]})) && _items_ori=("${_aitems[@]}")
     }
-    selector -q -l pgt_items_filter -p "pgtree ${pgrep_args[*]}" -k pgt_key -H '[A-u]:user [A-o]:fields [A-c]:children [C-k]:kill [A-k]:kill -9 [C-l]:refresh [A-i]:case' -f <(pgt)
+    selector -q -l pgt_items_filter -F "$pgrep_re" -p "pgtree ${pgrep_args[*]}" -k pgt_key -H '[Alt] u:user o:fields c:children t:threads k:kill [Ctl] k:kill-9 l:refresh' -f <(pgt)
     exit 0
 }
 
