@@ -4,4 +4,4 @@ set editing-mode vi
 #"\C-x": "texte inséré"
 #"\e[A": ""
 #"\e[B": ""
-
+"\C-p": ""
