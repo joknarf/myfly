@@ -51,8 +51,9 @@ type vim >/dev/null 2>&1 && {
   alias vi=vim
   export VIMINIT="source $FLY_HOME/.fly.d/.vimrc" 
 }
-
-[ -d "$XDG_RUNTIME_DIR" ] && export TMUX_TMPDIR="$XDG_RUNTIME_DIR"
+unset XDG_RUNTIME_DIR
+[ -O "/run/user/$(id -u)" ] && export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+[ -O "$XDG_RUNTIME_DIR" ] && export TMUX_TMPDIR="$XDG_RUNTIME_DIR"
 # screen tmux
 alias scwin='cd $FLY_HOME/.fly.d/.fly.lib;screen -dmA -c ../.screenrc bash --rcfile .bashrc;screen -r'
 alias ftmux='cd $FLY_HOME/.fly.d;FLY_HOME=$FLY_HOME tmux -f .tmux.conf;cd $OLDPWD'
