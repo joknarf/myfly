@@ -225,7 +225,7 @@ EOF
             fi
             return 0
         ;;
-        ctrl-t)pgt_psmenu -t tty <(ps "${PGT_PSOPT[@]}" -o tty=| utrim); return 0;;
+        ctrl-t)pgt_psmenu -t tty <(ps "${PGT_PSOPT[@]}" -o tty=|grep -Fv '?'| utrim); return 0;;
         ctrl-g)pgt_psmenu -G group <(ps "${PGT_PSOPT[@]}" -o group=| utrim); return 0;;
         alt-g) pgt_psmenu -g pgid <(ps "${PGT_PSOPT[@]}" -o pgid=| utrim n); return 0;;
         
